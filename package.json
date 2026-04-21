@@ -1,0 +1,32 @@
+﻿{
+  "name": "@YOUR_ORG/ai-engineering-commons",
+  "version": "1.0.0",
+  "description": "AI engineering commons - shared agents, skills and commands",
+  "bin": {
+    "aec": "./scripts/cli.js"
+  },
+  "files": [
+    "foundation/",
+    "agents/",
+    "commands/",
+    "sdlc/",
+    "security/",
+    "architecture/",
+    "coe/",
+    "templates/",
+    "scripts/",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "lint": "node scripts/lint.js",
+    "test": "node scripts/test.js"
+  },
+  "keywords": ["ai", "engineering", "agents", "copilot", "claude"],
+  "author": "Telia CoE",
+  "license": "MIT",
+  "engines": { "node": ">=18.0.0" },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  }
+}

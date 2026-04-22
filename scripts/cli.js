@@ -8,9 +8,14 @@ const AI_DIR  = path.join(process.cwd(), ".ai");
 const PROJECT = path.join(AI_DIR, "project");
 const PKG_DIR = path.join(__dirname, "..");
 
-function readFile(p) {
-  return fs.existsSync(p) ? fs.readFileSync(p, "utf8") : null;
+function stripBom(str) {
+  return str ? str.replace(/^\uFEFF/, '') : str;
 }
+
+function readFile(p) {
+  return fs.existsSync(p) ? stripBom(fs.readFileSync(p, 'utf8')) : null;
+}
+
 function readCommons(rel) { return readFile(path.join(PKG_DIR, rel)); }
 function readProject(rel) { return readFile(path.join(PROJECT, rel)); }
 
@@ -42,7 +47,7 @@ function generateCursor() {
     readCommons("foundation/CODING_STANDARDS.md"),
     readProject("OVERRIDES/CODING_STANDARDS.md"),
   ].filter(Boolean).join("\n\n---\n\n");
-  fs.writeFileSync(path.join(process.cwd(), ".cursorrules"), content || "", "utf8");
+  fs.writeFileSync(path.join(process.cwd(), ".cursorrules"), Buffer.from((content || "").replace(/^\uFEFF/g, ""), "utf8"), "utf8");
   console.log("  updated  .cursorrules");
 }
 

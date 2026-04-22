@@ -1,4 +1,4 @@
-﻿# ai-engineering-commons
+# ai-engineering-commons
 
 Shared AI engineering agents, skills, and commands for all Telia development
 teams. Single source of truth for AI-assisted engineering across the org.

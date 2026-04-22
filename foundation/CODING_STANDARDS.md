@@ -1,5 +1,5 @@
 # CODING_STANDARDS.md
-# AI Engineering Commons — Coding Standards for All Code Generation
+# AI Engineering Commons -- Coding Standards for All Code Generation
 # Version: 1.0.0
 # Status: Active
 # Last updated: 2025-01
@@ -15,11 +15,11 @@ formatting, and language-specific idioms for the three primary stacks in
 use across Telia engineering teams: Java, TypeScript/React, and C#.
 
 Referenced by:
-- `agents/CODE_GEN_AGENT.md` — primary consumer, applies these on every generation
-- `agents/REFACTOR_AGENT.md` — applies these when modernising existing code
-- `agents/PEER_REVIEW_AGENT.md` — checks every PR against these standards
-- `scripts/cli.js` — merges this file into `.cursorrules` for Cursor IDE
-- `SECURITY_STANDARDS.md` — security rules complement these coding rules
+- `agents/CODE_GEN_AGENT.md` -- primary consumer, applies these on every generation
+- `agents/REFACTOR_AGENT.md` -- applies these when modernising existing code
+- `agents/PEER_REVIEW_AGENT.md` -- checks every PR against these standards
+- `scripts/cli.js` -- merges this file into `.cursorrules` for Cursor IDE
+- `SECURITY_STANDARDS.md` -- security rules complement these coding rules
 
 When a project team diverges from any standard defined here, they place an
 override file at `.ai/project/OVERRIDES/CODING_STANDARDS.md` with the
@@ -28,7 +28,7 @@ The override takes precedence for that project only.
 
 ---
 
-## 2. Universal rules — all languages
+## 2. Universal rules -- all languages
 
 These rules apply regardless of language or framework.
 
@@ -41,7 +41,7 @@ These rules apply regardless of language or framework.
 | No abbreviations unless universal | `id`, `url`, `api`, `dto`, `http` are acceptable. `usr`, `cnt`, `mgr`, `proc` are not |
 | No hungarian notation | No `strName`, `intCount`, `bIsValid` |
 | Booleans are questions | Name booleans as questions: `isActive`, `hasPermission`, `canDelete`, `isEmpty` |
-| Collections are plural | `users`, `orders`, `eventIds` — not `userList`, `orderArray` |
+| Collections are plural | `users`, `orders`, `eventIds` -- not `userList`, `orderArray` |
 | Constants are descriptive | `MAX_RETRY_ATTEMPTS` not `MAX` or `N` |
 
 ### 2.2 Functions and methods
@@ -51,12 +51,12 @@ These rules apply regardless of language or framework.
 | One responsibility | A function does one thing. If you need "and" to describe what it does, split it. |
 | Maximum 30 lines | If a function exceeds 30 lines, it is a candidate for extraction. Flag for Tech Lead review. |
 | Maximum 4 parameters | More than 4 parameters → introduce a parameter object |
-| No boolean parameters | `sendEmail(user, true)` — what does `true` mean? Use named methods or enums instead |
+| No boolean parameters | `sendEmail(user, true)` -- what does `true` mean? Use named methods or enums instead |
 | Early return | Validate and return early rather than nesting if/else deeply |
-| Command-query separation | A function either returns a value or causes a side effect — not both |
+| Command-query separation | A function either returns a value or causes a side effect -- not both |
 
 ```java
-// BAD — does too many things, boolean parameter, unclear
+// BAD -- does too many things, boolean parameter, unclear
 public User processUser(User user, boolean sendEmail) {
     // validation
     // business logic
@@ -65,7 +65,7 @@ public User processUser(User user, boolean sendEmail) {
     // return
 }
 
-// GOOD — single responsibility, clear intent
+// GOOD -- single responsibility, clear intent
 public User validateAndSave(User user) { ... }
 public void notifyUserCreated(User user) { ... }
 ```
@@ -75,8 +75,8 @@ public void notifyUserCreated(User user) { ... }
 | Rule | Detail |
 |---|---|
 | Code explains what, comments explain why | If you need a comment to explain what code does, the code needs to be clearer |
-| No commented-out code | Delete it — version control preserves history |
-| No TODO without a ticket | `// TODO: fix this` is forbidden. `// TODO: PROJ-123 — fix edge case` is acceptable |
+| No commented-out code | Delete it -- version control preserves history |
+| No TODO without a ticket | `// TODO: fix this` is forbidden. `// TODO: PROJ-123 -- fix edge case` is acceptable |
 | Document public APIs | All public methods, classes, and interfaces must have doc comments |
 | No misleading comments | A comment that contradicts the code is worse than no comment |
 
@@ -84,26 +84,26 @@ public void notifyUserCreated(User user) { ... }
 
 | Rule | Detail |
 |---|---|
-| Never swallow exceptions | `catch (Exception e) {}` is forbidden — always log or rethrow |
+| Never swallow exceptions | `catch (Exception e) {}` is forbidden -- always log or rethrow |
 | Catch specific exceptions | Catch the narrowest exception type that makes sense |
 | Fail fast | Validate inputs at the boundary of a function, not deep inside |
 | Meaningful error messages | Error messages must include context: what was attempted, what failed, relevant identifiers |
 | No error codes as magic numbers | Use named constants or enums for error codes |
 
 ```java
-// FORBIDDEN — swallowed exception
+// FORBIDDEN -- swallowed exception
 try {
     processOrder(order);
 } catch (Exception e) {
     // do nothing
 }
 
-// FORBIDDEN — generic catch with no context
+// FORBIDDEN -- generic catch with no context
 } catch (Exception e) {
     log.error("Error occurred");
 }
 
-// REQUIRED — specific catch with context
+// REQUIRED -- specific catch with context
 } catch (OrderProcessingException e) {
     log.error("Failed to process order {}: {}", order.getId(), e.getMessage());
     throw new ServiceException("Order processing failed for order " + order.getId(), e);
@@ -115,10 +115,10 @@ try {
 | Rule | Detail |
 |---|---|
 | Files have one primary responsibility | One class per file (Java/C#), one component per file (React) |
-| Maximum file length 300 lines | Longer files are candidates for splitting — flag for Tech Lead review |
+| Maximum file length 300 lines | Longer files are candidates for splitting -- flag for Tech Lead review |
 | Consistent import ordering | See language-specific sections below |
 | No magic numbers | Replace literal numbers with named constants |
-| No deep nesting | Maximum 3 levels of nesting — extract methods to reduce depth |
+| No deep nesting | Maximum 3 levels of nesting -- extract methods to reduce depth |
 
 ---
 
@@ -153,7 +153,7 @@ com.telia.[domain].[service-name]/
 ### 3.3 Spring Boot patterns
 
 ```java
-// Controller — thin, delegates to application service
+// Controller -- thin, delegates to application service
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
@@ -168,7 +168,7 @@ public class OrderController {
     }
 }
 
-// Application service — orchestrates domain logic, no business rules here
+// Application service -- orchestrates domain logic, no business rules here
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -186,7 +186,7 @@ public class OrderApplicationService {
     }
 }
 
-// Domain entity — contains business rules
+// Domain entity -- contains business rules
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -213,7 +213,7 @@ public class Order {
 ### 3.4 Repository pattern
 
 ```java
-// Repository interface lives in domain — no JPA annotations here
+// Repository interface lives in domain -- no JPA annotations here
 public interface OrderRepository {
     Optional<Order> findById(UUID id);
     Order save(Order order);
@@ -238,10 +238,10 @@ public class JpaOrderRepository implements OrderRepository {
 
 | Pattern | Rule |
 |---|---|
-| `@RequiredArgsConstructor` | Use Lombok for constructor injection — no `@Autowired` on fields |
+| `@RequiredArgsConstructor` | Use Lombok for constructor injection -- no `@Autowired` on fields |
 | `@Valid` on request bodies | Always validate incoming DTOs |
 | `@Transactional` on service methods | Application service methods that write must be transactional |
-| `@Slf4j` | Use Lombok for logging — no manual `LoggerFactory.getLogger()` |
+| `@Slf4j` | Use Lombok for logging -- no manual `LoggerFactory.getLogger()` |
 | `Optional` return types | Repository find methods return `Optional<T>`, never `null` |
 | Record classes for DTOs | Use Java records for immutable DTOs where possible (Java 16+) |
 
@@ -271,7 +271,7 @@ import com.telia.order.domain.Order;
 ### 3.7 Testing standards
 
 ```java
-// Test structure — Arrange / Act / Assert with clear separation
+// Test structure -- Arrange / Act / Assert with clear separation
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
@@ -317,15 +317,15 @@ class OrderServiceTest {
 | Function | camelCase, verb | `fetchOrders()`, `handleSubmit()` |
 | Variable | camelCase | `orderCount`, `isLoading` |
 | Constant | UPPER_SNAKE_CASE | `MAX_ITEMS_PER_PAGE` |
-| File — component | PascalCase | `OrderSummary.tsx` |
-| File — hook | camelCase | `useOrderStatus.ts` |
-| File — utility | camelCase | `formatCurrency.ts` |
-| File — type | camelCase | `orderTypes.ts` |
+| File -- component | PascalCase | `OrderSummary.tsx` |
+| File -- hook | camelCase | `useOrderStatus.ts` |
+| File -- utility | camelCase | `formatCurrency.ts` |
+| File -- type | camelCase | `orderTypes.ts` |
 
 ### 4.2 Component structure
 
 ```typescript
-// Required component structure — props type first, component second
+// Required component structure -- props type first, component second
 interface OrderSummaryProps {
   orderId: string;
   onCancel: (orderId: string) => void;
@@ -360,7 +360,7 @@ export function OrderSummary({ orderId, onCancel, className }: OrderSummaryProps
 | Use `readonly` for immutable data | Mark arrays and objects that should not be mutated as `readonly` |
 | Use `zod` for runtime validation | All data from external sources (API responses, form inputs) validated with zod |
 | No non-null assertion (`!`) | Prove to TypeScript something is non-null rather than asserting it |
-| Strict mode enabled | `"strict": true` in `tsconfig.json` — no exceptions |
+| Strict mode enabled | `"strict": true` in `tsconfig.json` -- no exceptions |
 
 ```typescript
 // FORBIDDEN
@@ -379,7 +379,7 @@ if (!user) throw new Error(`User ${id} not found`);
 ### 4.4 Hook patterns
 
 ```typescript
-// Custom hooks — always return named properties, never positional arrays
+// Custom hooks -- always return named properties, never positional arrays
 // (except when mimicking useState for simple cases)
 export function useOrderDetails(orderId: string) {
   const [order, setOrder]     = useState<Order | null>(null);
@@ -426,7 +426,7 @@ src/
 ### 4.6 Testing standards
 
 ```typescript
-// Use React Testing Library — test behaviour, not implementation
+// Use React Testing Library -- test behaviour, not implementation
 describe('OrderSummary', () => {
   it('shows loading state while fetching order', () => {
     mockUseOrderDetails({ isLoading: true, order: null, error: null });
@@ -481,7 +481,7 @@ Solution/
 ### 5.3 Async patterns
 
 ```csharp
-// ALL I/O operations must be async — no .Result or .Wait()
+// ALL I/O operations must be async -- no .Result or .Wait()
 // FORBIDDEN
 public Order GetOrder(Guid id)
 {
@@ -506,7 +506,7 @@ public async Task<Order> FindByIdAsync(Guid id)
 ### 5.4 Dependency injection patterns
 
 ```csharp
-// Constructor injection — always, no property injection
+// Constructor injection -- always, no property injection
 public class OrderApplicationService
 {
     private readonly IOrderRepository _orderRepository;
@@ -531,7 +531,7 @@ public class OrderApplicationService
 ### 5.5 Record types and immutability
 
 ```csharp
-// Use records for DTOs and value objects — immutable by default
+// Use records for DTOs and value objects -- immutable by default
 public record CreateOrderRequest(
     Guid CustomerId,
     IReadOnlyList<OrderItemRequest> Items
@@ -544,7 +544,7 @@ public record OrderResponse(
     DateTimeOffset CreatedAt
 );
 
-// Value objects in domain — use records with validation
+// Value objects in domain -- use records with validation
 public record Money
 {
     public decimal Amount { get; }
@@ -563,7 +563,7 @@ public record Money
 ### 5.6 Error handling and result pattern
 
 ```csharp
-// Use Result pattern for expected failures — no exceptions for flow control
+// Use Result pattern for expected failures -- no exceptions for flow control
 public class Result<T>
 {
     public bool IsSuccess { get; }
@@ -695,9 +695,9 @@ chore/PROJ-501-upgrade-spring-boot-3-3
 
 | PR size | Lines changed | Guidance |
 |---|---|---|
-| Small | < 200 lines | Ideal — fast to review, easy to understand |
-| Medium | 200–500 lines | Acceptable — add extra context in PR description |
-| Large | 500–1000 lines | Requires Tech Lead justification — consider splitting |
+| Small | < 200 lines | Ideal -- fast to review, easy to understand |
+| Medium | 200-500 lines | Acceptable -- add extra context in PR description |
+| Large | 500-1000 lines | Requires Tech Lead justification -- consider splitting |
 | Extra large | > 1000 lines | Requires splitting unless it is a generated migration |
 
 ---
@@ -710,8 +710,8 @@ are categorised as:
 | Severity | Examples | Action |
 |---|---|---|
 | BLOCK | Swallowed exceptions, `any` type in TypeScript, `.Result` on async in C# | Must fix before merge |
-| WARN | Function over 30 lines, file over 300 lines, missing doc comment on public API | Flagged for Tech Lead — merge allowed with acknowledgement |
-| INFO | Naming suggestions, import ordering, minor style inconsistencies | Noted in review — no action required |
+| WARN | Function over 30 lines, file over 300 lines, missing doc comment on public API | Flagged for Tech Lead -- merge allowed with acknowledgement |
+| INFO | Naming suggestions, import ordering, minor style inconsistencies | Noted in review -- no action required |
 
 ---
 

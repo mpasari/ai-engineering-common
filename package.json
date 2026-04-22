@@ -1,5 +1,5 @@
 ﻿{
-  "name": "@YOUR_ORG/ai-engineering-commons",
+  "name": "@telia-company/ai-engineering-common",
   "version": "1.0.0",
   "description": "AI engineering commons - shared agents, skills and commands",
   "bin": {
@@ -30,3 +30,4 @@
     "access": "restricted"
   }
 }
+

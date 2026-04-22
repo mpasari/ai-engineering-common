@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 const fs   = require("fs");
 const path = require("path");
 const cmd  = process.argv[2];
@@ -90,7 +90,7 @@ if (cmd === "update") {
 }
 
 if (cmd === "version" || cmd === "-v") {
-  console.log("  @YOUR_ORG/ai-engineering-commons v" + PKG.version);
+  console.log("  @telia-company/ai-engineering-common v" + PKG.version);
 }
 
 if (!cmd) {
@@ -100,3 +100,4 @@ if (!cmd) {
   console.log("    aec update    Regenerate tool config files");
   console.log("    aec version   Show installed version\n");
 }
+

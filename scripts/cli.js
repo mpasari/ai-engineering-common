@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 const fs   = require("fs");
 const path = require("path");
 const cmd  = process.argv[2];
@@ -100,5 +100,6 @@ if (!cmd) {
   console.log("    aec update    Regenerate tool config files");
   console.log("    aec version   Show installed version\n");
 }
+
 
 

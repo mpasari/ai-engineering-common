@@ -22,7 +22,7 @@ function generateCopilot() {
     readProject("ARCHITECTURE_OVERVIEW.md"),
     readProject("MODULE_REGISTRY.md"),
   ].filter(Boolean).join("\n\n---\n\n");
-  fs.writeFileSync(out, content);
+  fs.writeFileSync(out, content, "utf8");
   console.log("  updated  .github/copilot-instructions.md");
 }
 
@@ -33,7 +33,7 @@ function generateClaude() {
     readProject("MODULE_REGISTRY.md"),
     readProject("INTEGRATION_MAP.md"),
   ].filter(Boolean).join("\n\n---\n\n");
-  fs.writeFileSync(path.join(process.cwd(), "CLAUDE.md"), content);
+  fs.writeFileSync(path.join(process.cwd(), "CLAUDE.md"), content, "utf8");
   console.log("  updated  CLAUDE.md");
 }
 
@@ -42,7 +42,7 @@ function generateCursor() {
     readCommons("foundation/CODING_STANDARDS.md"),
     readProject("OVERRIDES/CODING_STANDARDS.md"),
   ].filter(Boolean).join("\n\n---\n\n");
-  fs.writeFileSync(path.join(process.cwd(), ".cursorrules"), content || "");
+  fs.writeFileSync(path.join(process.cwd(), ".cursorrules"), content || "", "utf8");
   console.log("  updated  .cursorrules");
 }
 
@@ -100,4 +100,5 @@ if (!cmd) {
   console.log("    aec update    Regenerate tool config files");
   console.log("    aec version   Show installed version\n");
 }
+
 

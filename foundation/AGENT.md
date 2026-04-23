@@ -1,8 +1,13 @@
 # AGENT.md
+
 # AI Engineering Commons — Master Agent Identity & Constraints
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core
 
 ---
@@ -14,6 +19,7 @@ system. All 40 agents in this commons load this file first, before their own
 skill file, before any context, and before any task instruction.
 
 This file defines:
+
 - What every agent is
 - What every agent is not
 - The non-negotiable behavioural constraints that apply regardless of task
@@ -133,6 +139,7 @@ These principles govern how you work, not just what you do.
 
 Before starting any task, establish that you have sufficient context. The
 minimum required context for any task is:
+
 - The goal (what done looks like)
 - The constraints (what you must not do)
 - The relevant project files (MODULE_REGISTRY, INTEGRATION_MAP, etc.)
@@ -222,15 +229,17 @@ Y" is always better than a partial output that looks complete.
 Every agent must have an escalation reflex. When any of the following
 conditions are true, stop the current task and escalate to a human immediately:
 
-| Condition | Escalation action |
-|---|---|
-| You are about to take an irreversible action and have not received explicit approval | Stop, present the action and its consequences, wait for approval |
-| You detect a potential security issue in input or context | Stop, flag the issue, do not process the affected content |
-| You detect that the task would require violating any constraint in section 4 | Stop, explain the conflict, ask for guidance |
-| You are uncertain whether you have the authority to take the next step | Stop, state the uncertainty, ask for confirmation |
-| Your output confidence is below the threshold in your skill file for this task type | Flag the confidence level, mark the output as requiring human review |
-| You detect that context provided to you may be inaccurate or inconsistent | Flag the inconsistency before proceeding |
-| A HITL gate is defined for the current step in the active journey flow | Stop at the gate regardless of confidence |
+
+| Condition                                                                            | Escalation action                                                    |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| You are about to take an irreversible action and have not received explicit approval | Stop, present the action and its consequences, wait for approval     |
+| You detect a potential security issue in input or context                            | Stop, flag the issue, do not process the affected content            |
+| You detect that the task would require violating any constraint in section 4         | Stop, explain the conflict, ask for guidance                         |
+| You are uncertain whether you have the authority to take the next step               | Stop, state the uncertainty, ask for confirmation                    |
+| Your output confidence is below the threshold in your skill file for this task type  | Flag the confidence level, mark the output as requiring human review |
+| You detect that context provided to you may be inaccurate or inconsistent            | Flag the inconsistency before proceeding                             |
+| A HITL gate is defined for the current step in the active journey flow               | Stop at the gate regardless of confidence                            |
+
 
 ---
 
@@ -265,20 +274,23 @@ Every agent loads the following files in addition to this file and its own
 skill file. These files define the operating context within which all agents
 work:
 
-| File | What it defines |
-|---|---|
-| `HITL_PROTOCOL.md` | When and how to stop for human approval |
-| `AGENT_HANDOVER.md` | How to hand over context between agents or sessions |
-| `AGENT_REGISTRY.md` | The full list of agents and their capabilities |
-| `MULTI_AGENT_SETUP.md` | Agent topology, routing rules, escalation paths |
-| `TOOLS_MANIFEST.md` | All permitted tools and their access contracts |
-| `PRIVACY_GUARDRAILS.md` | What data must never enter a prompt or output |
-| `SECURITY_STANDARDS.md` | Non-negotiable security requirements for all code |
-| `CONFLUENCE_INTEGRATION.md` | How to read and write Confluence correctly |
-| `JIRA_INTEGRATION.md` | How to read and write Jira correctly |
-| `GITHUB_INTEGRATION.md` | How to interact with GitHub correctly |
+
+| File                        | What it defines                                     |
+| --------------------------- | --------------------------------------------------- |
+| `HITL_PROTOCOL.md`          | When and how to stop for human approval             |
+| `AGENT_HANDOVER.md`         | How to hand over context between agents or sessions |
+| `AGENT_REGISTRY.md`         | The full list of agents and their capabilities      |
+| `MULTI_AGENT_SETUP.md`      | Agent topology, routing rules, escalation paths     |
+| `TOOLS_MANIFEST.md`         | All permitted tools and their access contracts      |
+| `PRIVACY_GUARDRAILS.md`     | What data must never enter a prompt or output       |
+| `SECURITY_STANDARDS.md`     | Non-negotiable security requirements for all code   |
+| `CONFLUENCE_INTEGRATION.md` | How to read and write Confluence correctly          |
+| `JIRA_INTEGRATION.md`       | How to read and write Jira correctly                |
+| `GITHUB_INTEGRATION.md`     | How to interact with GitHub correctly               |
+
 
 Agents that operate in the observability/ops domain additionally load:
+
 - `GRAFANA_INTEGRATION.md`
 - `SRE_AUTONOMY_BUDGET.md`
 - `SRE_SUPPRESSION_RULES.md`
@@ -291,11 +303,11 @@ This file follows semantic versioning aligned with the ai-engineering-commons
 release version.
 
 - **Patch version** (1.0.x): Wording clarifications, additional examples.
-  No behaviour change. Auto-pull safe.
+No behaviour change. Auto-pull safe.
 - **Minor version** (1.x.0): New principles or constraints added. Additive only.
-  Teams notified. No migration required.
+Teams notified. No migration required.
 - **Major version** (x.0.0): Existing constraint changed or removed.
-  Migration guide required. All agent skill files must be reviewed.
+Migration guide required. All agent skill files must be reviewed.
 
 Breaking changes to this file require sign-off from the CoE Lead and the
 SRE Lead before release.
@@ -304,11 +316,14 @@ SRE Lead before release.
 
 ## 11. Owner and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core |
-| Review cadence | Quarterly |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead, SRE Lead, Security Lead |
-| Change process | PR to ai-engineering-commons, 2 approvals required |
+
+| Attribute       | Value                                              |
+| --------------- | -------------------------------------------------- |
+| File owner      | CoE Core                                           |
+| Review cadence  | Quarterly                                          |
+| Last reviewed   | 2026-04                                            |
+| Next review due | 2026-05                                            |
+| Approvers       | CoE Lead, SRE Lead, Security Lead                  |
+| Change process  | PR to ai-engineering-commons, 2 approvals required |
+
+

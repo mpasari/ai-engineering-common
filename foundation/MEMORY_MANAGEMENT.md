@@ -1,8 +1,13 @@
 # MEMORY_MANAGEMENT.md
+
 # AI Engineering Commons -- Agent Memory Management
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core
 
 ---
@@ -16,6 +21,7 @@ file defines the structured workarounds that give the system the appearance
 and behaviour of memory without relying on any single model's context window.
 
 Referenced by:
+
 - `MULTI_AGENT_SETUP.md` section 9 -- context management across agents
 - `AGENT_HANDOVER.md` section 6 -- where handover packages are stored
 - All agent skill files -- each declares which memory tiers it uses
@@ -66,6 +72,7 @@ Tier 4 -- Commons knowledge (ai-engineering-common repo)
 ### 3.1 What lives in context
 
 The agent's active context window contains:
+
 - The current task description and goal
 - The relevant commons files loaded for this task
 - The handover package received (if resuming a task)
@@ -93,6 +100,7 @@ context window limits. See CONTEXT_WINDOW_STRATEGY.md for selection rules.
 ### 3.3 Context expiry
 
 In-context memory expires when:
+
 - The agent session ends
 - The context window is exhausted (triggers compression -- see section 3.4)
 - The task is completed
@@ -145,6 +153,7 @@ comments programmatically identifiable. Agents search for these
 markers when recovering task state from a ticket.
 
 **State comment lifecycle:**
+
 - Created: when an agent pauses at a HITL gate or session ends
 - Updated: when the task resumes and progress is made
 - Closed: when the task is complete (final state comment added with COMPLETED marker)
@@ -155,13 +164,15 @@ markers when recovering task state from a ticket.
 For tasks that produce code, the PR is a state store for the
 code-level progress:
 
-| PR state | What it signals |
-|---|---|
-| Draft PR | Code generation in progress -- not ready for review |
-| Ready for review | Code generation complete -- agent review in progress |
-| Changes requested | Human review requested changes -- agent resumes |
-| Approved | Human approved -- ready to merge (HITL gate D01 passed) |
-| Merged | Task complete -- triggers downstream agents |
+
+| PR state          | What it signals                                         |
+| ----------------- | ------------------------------------------------------- |
+| Draft PR          | Code generation in progress -- not ready for review     |
+| Ready for review  | Code generation complete -- agent review in progress    |
+| Changes requested | Human review requested changes -- agent resumes         |
+| Approved          | Human approved -- ready to merge (HITL gate D01 passed) |
+| Merged            | Task complete -- triggers downstream agents             |
+
 
 Agents use PR labels (per GITHUB_INTEGRATION.md section 5.3) as
 additional state signals that are visible without reading comments.
@@ -191,32 +202,36 @@ and be reused across many tasks.
 
 ### 5.1 What agents write to Tier 3
 
-| Content type | When written | Owner agent | Expires |
-|---|---|---|---|
-| Technical spec | After spec approval | Spec Writer | When feature is deprecated |
-| ADR | After Architect approval | Arch Doc | Never -- superseded not deleted |
-| Architecture overview | After epic completion or monthly | Arch Doc | Never -- updated in place |
-| Runbook | After service deployment | Release, Documentation | When service is decommissioned |
-| KEDB workaround | After known error accepted | Problem Management | When known error resolved |
-| Incident record | During incident | Incident Response | Never -- audit record |
-| Post-mortem | After incident resolved | Incident Response | Never -- audit record |
-| Onboarding guide | After brownfield discovery | Onboarding | When team structure changes |
-| Sprint report | End of sprint | Stakeholder Report | 12 months |
+
+| Content type          | When written                     | Owner agent            | Expires                         |
+| --------------------- | -------------------------------- | ---------------------- | ------------------------------- |
+| Technical spec        | After spec approval              | Spec Writer            | When feature is deprecated      |
+| ADR                   | After Architect approval         | Arch Doc               | Never -- superseded not deleted |
+| Architecture overview | After epic completion or monthly | Arch Doc               | Never -- updated in place       |
+| Runbook               | After service deployment         | Release, Documentation | When service is decommissioned  |
+| KEDB workaround       | After known error accepted       | Problem Management     | When known error resolved       |
+| Incident record       | During incident                  | Incident Response      | Never -- audit record           |
+| Post-mortem           | After incident resolved          | Incident Response      | Never -- audit record           |
+| Onboarding guide      | After brownfield discovery       | Onboarding             | When team structure changes     |
+| Sprint report         | End of sprint                    | Stakeholder Report     | 12 months                       |
+
 
 ### 5.2 What agents read from Tier 3
 
 Agents read Confluence before taking action to avoid conflicts with
 existing decisions. The key reads are:
 
-| Agent | What it reads | Why |
-|---|---|---|
-| Spec Writer | Existing specs in the project space | Detect conflicts with existing design |
-| Code Gen | Technical spec for the current story | Generate compliant code |
-| Dependency Mapper | All specs mentioning the affected service | Map impact scope |
-| Arch Doc | Existing architecture pages | Update without duplicating |
-| Problem Management | KEDB entries | Check for duplicate known errors |
-| Bug Triage | KEDB entries | Check for known error match |
-| Onboarding Agent | All pages in the project space | Guide new engineer |
+
+| Agent              | What it reads                             | Why                                   |
+| ------------------ | ----------------------------------------- | ------------------------------------- |
+| Spec Writer        | Existing specs in the project space       | Detect conflicts with existing design |
+| Code Gen           | Technical spec for the current story      | Generate compliant code               |
+| Dependency Mapper  | All specs mentioning the affected service | Map impact scope                      |
+| Arch Doc           | Existing architecture pages               | Update without duplicating            |
+| Problem Management | KEDB entries                              | Check for duplicate known errors      |
+| Bug Triage         | KEDB entries                              | Check for known error match           |
+| Onboarding Agent   | All pages in the project space            | Guide new engineer                    |
+
 
 ### 5.3 Confluence search strategy
 
@@ -226,6 +241,7 @@ the page hierarchy manually. This is faster and more reliable for
 large Confluence spaces.
 
 **Preferred search pattern:**
+
 ```
 type = page AND label = "{content-type-label}"
 AND space = "{space-key}" AND text ~ "{search-term}"
@@ -354,18 +370,20 @@ Known error resolved:
 
 ### 8.1 Automatic expiry rules
 
-| Memory tier | Content | Expiry |
-|---|---|---|
-| Tier 1 | All content | Session end |
-| Tier 2 | Jira state comments | 90 days after ticket closure |
-| Tier 2 | GitHub PR content | Never deleted -- audit record |
-| Tier 3 | Sprint reports | 12 months |
-| Tier 3 | Technical specs | When feature is deprecated |
-| Tier 3 | ADRs | Never deleted -- superseded, not deleted |
-| Tier 3 | KEDB workarounds | When known error resolved |
-| Tier 3 | Incident records | Never deleted -- audit record |
-| Tier 3 | Post-mortems | Never deleted -- audit record |
-| Tier 4 | All content | Managed by CoE versioning |
+
+| Memory tier | Content             | Expiry                                   |
+| ----------- | ------------------- | ---------------------------------------- |
+| Tier 1      | All content         | Session end                              |
+| Tier 2      | Jira state comments | 90 days after ticket closure             |
+| Tier 2      | GitHub PR content   | Never deleted -- audit record            |
+| Tier 3      | Sprint reports      | 12 months                                |
+| Tier 3      | Technical specs     | When feature is deprecated               |
+| Tier 3      | ADRs                | Never deleted -- superseded, not deleted |
+| Tier 3      | KEDB workarounds    | When known error resolved                |
+| Tier 3      | Incident records    | Never deleted -- audit record            |
+| Tier 3      | Post-mortems        | Never deleted -- audit record            |
+| Tier 4      | All content         | Managed by CoE versioning                |
+
 
 ### 8.2 GDPR and personal data in memory
 
@@ -374,9 +392,9 @@ period as defined in COMPLIANCE_STANDARDS.md. Specific rules:
 
 - Tier 1: personal data in context is cleared at session end automatically
 - Tier 2: Jira comments containing personal data must be scrubbed
-  within 30 days if the data subject exercises their right to erasure
+within 30 days if the data subject exercises their right to erasure
 - Tier 3: Confluence pages containing personal data must have retention
-  labels applied so they appear in the quarterly retention review
+labels applied so they appear in the quarterly retention review
 - Tier 4: Commons files must never contain personal data
 
 Agents must apply PRIVACY_GUARDRAILS.md scrubbing rules before writing
@@ -386,30 +404,35 @@ any content to Tier 2 or Tier 3.
 
 ## 9. Memory access by agent group
 
-| Agent group | Tier 1 | Tier 2 read | Tier 2 write | Tier 3 read | Tier 3 write | Tier 4 |
-|---|---|---|---|---|---|---|
-| G01 Orchestration | Yes | Yes | Yes | Yes | No | Read |
-| G02 Planning | Yes | Yes | Yes | Yes | Yes | Read |
-| G03 Specification | Yes | Yes | Yes | Yes | Yes | Read |
-| G04 Engineering | Yes | Yes | Yes | Yes | No | Read |
-| G05 QA and testing | Yes | Yes | Yes | Yes | No | Read |
-| G06 Event-driven | Yes | Yes | Limited | Yes | No | Read |
-| G07 Security | Yes | Yes | Yes | Yes | Yes | Read |
-| G08 Review/release | Yes | Yes | Yes | Yes | Yes | Read |
-| G09 Documentation | Yes | Yes | No | Yes | Yes | Read |
-| G10 Module mgmt | Yes | Yes | Yes | Yes | Yes | Read |
-| G11 Infrastructure | Yes | Yes | Yes | Yes | Yes | Read |
-| G12 Operations | Yes | Yes | Yes | Yes | Yes | Read (SRE also writes Tier 4 suppression rules via CoE) |
+
+| Agent group        | Tier 1 | Tier 2 read | Tier 2 write | Tier 3 read | Tier 3 write | Tier 4                                                  |
+| ------------------ | ------ | ----------- | ------------ | ----------- | ------------ | ------------------------------------------------------- |
+| G01 Orchestration  | Yes    | Yes         | Yes          | Yes         | No           | Read                                                    |
+| G02 Planning       | Yes    | Yes         | Yes          | Yes         | Yes          | Read                                                    |
+| G03 Specification  | Yes    | Yes         | Yes          | Yes         | Yes          | Read                                                    |
+| G04 Engineering    | Yes    | Yes         | Yes          | Yes         | No           | Read                                                    |
+| G05 QA and testing | Yes    | Yes         | Yes          | Yes         | No           | Read                                                    |
+| G06 Event-driven   | Yes    | Yes         | Limited      | Yes         | No           | Read                                                    |
+| G07 Security       | Yes    | Yes         | Yes          | Yes         | Yes          | Read                                                    |
+| G08 Review/release | Yes    | Yes         | Yes          | Yes         | Yes          | Read                                                    |
+| G09 Documentation  | Yes    | Yes         | No           | Yes         | Yes          | Read                                                    |
+| G10 Module mgmt    | Yes    | Yes         | Yes          | Yes         | Yes          | Read                                                    |
+| G11 Infrastructure | Yes    | Yes         | Yes          | Yes         | Yes          | Read                                                    |
+| G12 Operations     | Yes    | Yes         | Yes          | Yes         | Yes          | Read (SRE also writes Tier 4 suppression rules via CoE) |
+
 
 ---
 
 ## 10. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core |
-| Review cadence | Quarterly |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                 |
+| --------------- | ----------------------------------------------------- |
+| File owner      | CoE Core                                              |
+| Review cadence  | Quarterly                                             |
+| Last reviewed   | 2026-04                                               |
+| Next review due | 2026-05                                               |
+| Approvers       | CoE Lead                                              |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required |
+
+

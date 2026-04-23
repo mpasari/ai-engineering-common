@@ -1,8 +1,13 @@
-# PERFORMANCE_GUIDELINES.md
+# 5PERFORMANCE_GUIDELINES.md
+
 # AI Engineering Commons -- Performance Guidelines for All Code Generation
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core + Tech Lead representatives
 
 ---
@@ -14,6 +19,7 @@ must apply when generating, reviewing, or modifying code. It covers database
 access, caching, async patterns, pagination, and load targets.
 
 Referenced by:
+
 - `agents/CODE_GEN_AGENT.md` -- applies these patterns during generation
 - `agents/PERFORMANCE_AGENT.md` -- uses these as the baseline for analysis
 - `agents/PEER_REVIEW_AGENT.md` -- checks every PR against these guidelines
@@ -69,13 +75,15 @@ const orders = await orderRepository.find({
 
 ### 2.2 Query complexity limits
 
-| Rule | Limit | Action when exceeded |
-|---|---|---|
-| Maximum JOINs per query | 4 | Refactor to separate queries or denormalise |
-| Maximum rows fetched without pagination | 100 | Add pagination -- see section 5 |
-| Maximum query execution time (OLTP) | 100ms p95 | Investigate index, query plan |
-| Maximum query execution time (reporting) | 5s p95 | Move to async/batch processing |
-| Maximum subquery depth | 2 | Refactor to CTEs or temporary tables |
+
+| Rule                                     | Limit     | Action when exceeded                        |
+| ---------------------------------------- | --------- | ------------------------------------------- |
+| Maximum JOINs per query                  | 4         | Refactor to separate queries or denormalise |
+| Maximum rows fetched without pagination  | 100       | Add pagination -- see section 5             |
+| Maximum query execution time (OLTP)      | 100ms p95 | Investigate index, query plan               |
+| Maximum query execution time (reporting) | 5s p95    | Move to async/batch processing              |
+| Maximum subquery depth                   | 2         | Refactor to CTEs or temporary tables        |
+
 
 ### 2.3 Index requirements
 
@@ -119,6 +127,7 @@ public HikariDataSource dataSource() {
 ```
 
 Agents must not generate code that:
+
 - Holds a database connection open across an external HTTP call
 - Opens a connection inside a loop
 - Uses a new connection per request without pooling
@@ -130,15 +139,17 @@ Agents must not generate code that:
 
 ### 3.1 What to cache
 
-| Data type | Cache strategy | TTL |
-|---|---|---|
-| Reference data (countries, currencies, product catalogue) | In-memory + Redis | 1 hour |
-| User session data | Redis | Session duration |
-| API responses from slow third-party services | Redis | Per partner SLA |
-| Computed aggregates (counts, totals) | Redis | 5 minutes |
-| Per-request repeated lookups | In-memory (request scope) | Request lifetime |
-| User-specific personalised data | Redis with user key | 15 minutes |
-| Security tokens and permissions | Redis | Token expiry |
+
+| Data type                                                 | Cache strategy            | TTL              |
+| --------------------------------------------------------- | ------------------------- | ---------------- |
+| Reference data (countries, currencies, product catalogue) | In-memory + Redis         | 1 hour           |
+| User session data                                         | Redis                     | Session duration |
+| API responses from slow third-party services              | Redis                     | Per partner SLA  |
+| Computed aggregates (counts, totals)                      | Redis                     | 5 minutes        |
+| Per-request repeated lookups                              | In-memory (request scope) | Request lifetime |
+| User-specific personalised data                           | Redis with user key       | 15 minutes       |
+| Security tokens and permissions                           | Redis                     | Token expiry     |
+
 
 ### 3.2 What must NOT be cached
 
@@ -213,15 +224,17 @@ public class ProductService {
 
 ### 4.1 When to use async processing
 
-| Scenario | Pattern | Reason |
-|---|---|---|
-| Email / SMS sending | Kafka event or async task | User should not wait for delivery |
-| PDF generation | Kafka event + polling or webhook | Generation can take seconds |
-| Report generation | Async job + status endpoint | Can take minutes |
-| Third-party API calls > 500ms SLA | Circuit breaker + fallback | Protect response time |
-| Batch data processing | Scheduled job + Kafka | Never in a request thread |
-| Search index updates | Kafka event | Eventually consistent is acceptable |
-| Audit log writing | Async, best-effort | Must not block main flow |
+
+| Scenario                          | Pattern                          | Reason                              |
+| --------------------------------- | -------------------------------- | ----------------------------------- |
+| Email / SMS sending               | Kafka event or async task        | User should not wait for delivery   |
+| PDF generation                    | Kafka event + polling or webhook | Generation can take seconds         |
+| Report generation                 | Async job + status endpoint      | Can take minutes                    |
+| Third-party API calls > 500ms SLA | Circuit breaker + fallback       | Protect response time               |
+| Batch data processing             | Scheduled job + Kafka            | Never in a request thread           |
+| Search index updates              | Kafka event                      | Eventually consistent is acceptable |
+| Audit log writing                 | Async, best-effort               | Must not block main flow            |
+
 
 ### 4.2 CompletableFuture patterns (Java)
 
@@ -287,14 +300,16 @@ async function buildOrderSummary(orderId: string): Promise<OrderSummary> {
 Every external call must have an explicit timeout. Agents must generate
 timeouts alongside any HTTP client, database query, or cache operation.
 
-| Operation type | Default timeout | Maximum allowed |
-|---|---|---|
-| Internal service HTTP call | 2 seconds | 5 seconds |
-| External partner API call | 5 seconds | 30 seconds |
-| Database query (OLTP) | 3 seconds | 10 seconds |
-| Cache read | 100ms | 500ms |
-| Kafka producer send | 1 second | 5 seconds |
-| File system read | 1 second | 10 seconds |
+
+| Operation type             | Default timeout | Maximum allowed |
+| -------------------------- | --------------- | --------------- |
+| Internal service HTTP call | 2 seconds       | 5 seconds       |
+| External partner API call  | 5 seconds       | 30 seconds      |
+| Database query (OLTP)      | 3 seconds       | 10 seconds      |
+| Cache read                 | 100ms           | 500ms           |
+| Kafka producer send        | 1 second        | 5 seconds       |
+| File system read           | 1 second        | 10 seconds      |
+
 
 ```java
 // REQUIRED -- explicit timeout on every external call
@@ -360,12 +375,14 @@ public CursorPage<EventSummary> getEvents(
 
 ### 5.3 Pagination defaults
 
-| Setting | Default | Maximum |
-|---|---|---|
-| Default page size | 20 | 100 |
-| Maximum page size | 100 | -- |
-| Default sort | `createdAt DESC` | -- |
-| Cursor expiry (cursor pagination) | 24 hours | -- |
+
+| Setting                           | Default          | Maximum |
+| --------------------------------- | ---------------- | ------- |
+| Default page size                 | 20               | 100     |
+| Maximum page size                 | 100              | --      |
+| Default sort                      | `createdAt DESC` | --      |
+| Cursor expiry (cursor pagination) | 24 hours         | --      |
+
 
 ---
 
@@ -415,12 +432,14 @@ private static final Pattern EMAIL_PATTERN =
 
 ### 6.3 Response size limits
 
-| Response type | Maximum size | Action if exceeded |
-|---|---|---|
-| REST API JSON response | 10MB | Paginate or use streaming |
-| File download via API | 50MB | Use pre-signed URL to object storage |
-| Kafka message payload | 1MB | Split or reference external storage |
-| WebSocket message | 64KB | Chunk the message |
+
+| Response type          | Maximum size | Action if exceeded                   |
+| ---------------------- | ------------ | ------------------------------------ |
+| REST API JSON response | 10MB         | Paginate or use streaming            |
+| File download via API  | 50MB         | Use pre-signed URL to object storage |
+| Kafka message payload  | 1MB          | Split or reference external storage  |
+| WebSocket message      | 64KB         | Chunk the message                    |
+
 
 ---
 
@@ -431,38 +450,46 @@ services may define stricter targets in their `SRE_SERVICE_CONFIG.md`.
 
 ### 7.1 Response time targets (OLTP services)
 
-| Percentile | Target | Alert threshold |
-|---|---|---|
-| p50 (median) | < 50ms | > 100ms |
-| p95 | < 200ms | > 500ms |
-| p99 | < 500ms | > 1000ms |
-| p999 | < 2000ms | > 5000ms |
+
+| Percentile   | Target   | Alert threshold |
+| ------------ | -------- | --------------- |
+| p50 (median) | < 50ms   | > 100ms         |
+| p95          | < 200ms  | > 500ms         |
+| p99          | < 500ms  | > 1000ms        |
+| p999         | < 2000ms | > 5000ms        |
+
 
 ### 7.2 Availability targets
 
-| Service tier | Availability target | Max downtime per month |
-|---|---|---|
-| Critical (billing, auth) | 99.95% | 22 minutes |
-| Standard (most services) | 99.9% | 44 minutes |
-| Best-effort (internal tools) | 99.5% | 3.6 hours |
+
+| Service tier                 | Availability target | Max downtime per month |
+| ---------------------------- | ------------------- | ---------------------- |
+| Critical (billing, auth)     | 99.95%              | 22 minutes             |
+| Standard (most services)     | 99.9%               | 44 minutes             |
+| Best-effort (internal tools) | 99.5%               | 3.6 hours              |
+
 
 ### 7.3 Throughput baselines
 
-| Service type | Baseline RPS | Scale trigger |
-|---|---|---|
-| Customer-facing API | 1,000 RPS per instance | > 70% CPU or > 80% memory |
-| Internal service | 500 RPS per instance | > 70% CPU or > 80% memory |
-| Kafka consumer | 10,000 messages/sec per partition | Consumer lag > 10,000 messages |
-| Batch job | N/A | Duration > 2x historical average |
+
+| Service type        | Baseline RPS                      | Scale trigger                    |
+| ------------------- | --------------------------------- | -------------------------------- |
+| Customer-facing API | 1,000 RPS per instance            | > 70% CPU or > 80% memory        |
+| Internal service    | 500 RPS per instance              | > 70% CPU or > 80% memory        |
+| Kafka consumer      | 10,000 messages/sec per partition | Consumer lag > 10,000 messages   |
+| Batch job           | N/A                               | Duration > 2x historical average |
+
 
 ### 7.4 Error rate targets
 
-| Error type | Target | Alert threshold |
-|---|---|---|
-| 5xx errors | < 0.1% of requests | > 0.5% |
-| 4xx errors (client errors) | < 5% of requests | > 10% |
-| Kafka consumer failures | < 0.01% | > 0.1% |
-| DLQ messages | 0 per hour (normal) | > 10 per hour |
+
+| Error type                 | Target              | Alert threshold |
+| -------------------------- | ------------------- | --------------- |
+| 5xx errors                 | < 0.1% of requests  | > 0.5%          |
+| 4xx errors (client errors) | < 5% of requests    | > 10%           |
+| Kafka consumer failures    | < 0.01%             | > 0.1%          |
+| DLQ messages               | 0 per hour (normal) | > 10 per hour   |
+
 
 ---
 
@@ -470,23 +497,25 @@ services may define stricter targets in their `SRE_SERVICE_CONFIG.md`.
 
 The Performance Agent and Peer Review Agent check every PR against this list.
 
-| # | Check | Severity |
-|---|---|---|
-| P01 | No N+1 query patterns | BLOCK |
-| P02 | No unbounded list queries without pagination | BLOCK |
-| P03 | No database calls inside loops | BLOCK |
-| P04 | No synchronous calls to slow operations in request thread | BLOCK |
-| P05 | External HTTP calls have explicit timeouts | BLOCK |
-| P06 | No ObjectMapper/HttpClient instantiated per request | WARN |
-| P07 | New query columns have indexes generated | WARN |
-| P08 | Parallel independent calls use Promise.all or CompletableFuture | WARN |
-| P09 | Large dataset processing uses streaming not in-memory load | WARN |
-| P10 | Cache keys include all relevant dimensions | WARN |
-| P11 | Cache invalidation on write is implemented | WARN |
-| P12 | Connection pool is configured with timeout and max size | WARN |
-| P13 | Response size is within defined limits | WARN |
-| P14 | Paginated endpoints enforce maximum page size | WARN |
-| P15 | No compiled regex or patterns created inside loops | INFO |
+
+| #   | Check                                                           | Severity |
+| --- | --------------------------------------------------------------- | -------- |
+| P01 | No N+1 query patterns                                           | BLOCK    |
+| P02 | No unbounded list queries without pagination                    | BLOCK    |
+| P03 | No database calls inside loops                                  | BLOCK    |
+| P04 | No synchronous calls to slow operations in request thread       | BLOCK    |
+| P05 | External HTTP calls have explicit timeouts                      | BLOCK    |
+| P06 | No ObjectMapper/HttpClient instantiated per request             | WARN     |
+| P07 | New query columns have indexes generated                        | WARN     |
+| P08 | Parallel independent calls use Promise.all or CompletableFuture | WARN     |
+| P09 | Large dataset processing uses streaming not in-memory load      | WARN     |
+| P10 | Cache keys include all relevant dimensions                      | WARN     |
+| P11 | Cache invalidation on write is implemented                      | WARN     |
+| P12 | Connection pool is configured with timeout and max size         | WARN     |
+| P13 | Response size is within defined limits                          | WARN     |
+| P14 | Paginated endpoints enforce maximum page size                   | WARN     |
+| P15 | No compiled regex or patterns created inside loops              | INFO     |
+
 
 ---
 
@@ -519,24 +548,29 @@ address immediately or create a follow-up Jira ticket.
 
 ## 10. Relationship to other files
 
-| File | Relationship |
-|---|---|
-| `SECURITY_STANDARDS.md` | Security rules complement these performance rules -- both apply |
-| `agents/PERFORMANCE_AGENT.md` | The agent that enforces this file during incident analysis |
-| `agents/PEER_REVIEW_AGENT.md` | Checks the P01-P15 checklist on every PR |
-| `sdlc/ops/SLA_DEFINITIONS.md` | Per-service SLO targets that override section 7 defaults |
-| `sdlc/qa/PERFORMANCE_TEST_GUIDE.md` | How to write performance tests against these targets |
-| `agents/TEST_GEN_AGENT.md` | Uses section 7 targets to generate performance test assertions |
+
+| File                                | Relationship                                                    |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `SECURITY_STANDARDS.md`             | Security rules complement these performance rules -- both apply |
+| `agents/PERFORMANCE_AGENT.md`       | The agent that enforces this file during incident analysis      |
+| `agents/PEER_REVIEW_AGENT.md`       | Checks the P01-P15 checklist on every PR                        |
+| `sdlc/ops/SLA_DEFINITIONS.md`       | Per-service SLO targets that override section 7 defaults        |
+| `sdlc/qa/PERFORMANCE_TEST_GUIDE.md` | How to write performance tests against these targets            |
+| `agents/TEST_GEN_AGENT.md`          | Uses section 7 targets to generate performance test assertions  |
+
 
 ---
 
 ## 11. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core + Tech Lead representatives |
-| Review cadence | Quarterly |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead, Tech Lead representative, SRE Lead |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                 |
+| --------------- | ----------------------------------------------------- |
+| File owner      | CoE Core + Tech Lead representatives                  |
+| Review cadence  | Quarterly                                             |
+| Last reviewed   | 2026-04                                               |
+| Next review due | 2026-05                                               |
+| Approvers       | CoE Lead, Tech Lead representative, SRE Lead          |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required |
+
+

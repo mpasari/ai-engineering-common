@@ -1,8 +1,13 @@
 # HITL_PROTOCOL.md
+
 # AI Engineering Commons -- Human-in-the-Loop Protocol
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core
 
 ---
@@ -36,18 +41,20 @@ These gates exist because the action is irreversible or directly affects
 live systems and real users. No agent may proceed past a Category A gate
 without explicit human approval.
 
-| Gate ID | Trigger | Required approver |
-|---|---|---|
-| A01 | Any merge to main or release branch | Tech Lead |
-| A02 | Any deployment to production environment | Tech Lead + DevOps |
-| A03 | Any database migration on production | Tech Lead + DBA |
-| A04 | Any change to security configuration in production | Security Lead |
-| A05 | Any deletion of data in production | Tech Lead + Data Owner |
-| A06 | Any change to authentication or authorisation rules | Security Lead |
-| A07 | SRE Agent Tier 2 action notification | On-call Engineer |
-| A08 | SRE Agent Tier 3 escalation | On-call Engineer + Tech Lead |
-| A09 | SRE Agent Tier 4 war room activation | Tech Lead + SRE Lead |
-| A10 | Any rollback decision in production | Tech Lead |
+
+| Gate ID | Trigger                                             | Required approver            |
+| ------- | --------------------------------------------------- | ---------------------------- |
+| A01     | Any merge to main or release branch                 | Tech Lead                    |
+| A02     | Any deployment to production environment            | Tech Lead + DevOps           |
+| A03     | Any database migration on production                | Tech Lead + DBA              |
+| A04     | Any change to security configuration in production  | Security Lead                |
+| A05     | Any deletion of data in production                  | Tech Lead + Data Owner       |
+| A06     | Any change to authentication or authorisation rules | Security Lead                |
+| A07     | SRE Agent Tier 2 action notification                | On-call Engineer             |
+| A08     | SRE Agent Tier 3 escalation                         | On-call Engineer + Tech Lead |
+| A09     | SRE Agent Tier 4 war room activation                | Tech Lead + SRE Lead         |
+| A10     | Any rollback decision in production                 | Tech Lead                    |
+
 
 ### Category B -- Architectural decision gates
 
@@ -55,16 +62,18 @@ These gates exist because the decision shapes how the system is built
 and is expensive to reverse. The agent presents options and evidence;
 the human makes the decision.
 
-| Gate ID | Trigger | Required approver |
-|---|---|---|
-| B01 | New service or module creation | Architect |
-| B02 | New external integration introduction | Architect + Tech Lead |
-| B03 | API version bump (breaking change) | Architect + Tech Lead |
-| B04 | New dependency not in approved list | Security Lead + Tech Lead |
-| B05 | Architecture Decision Record (ADR) finalisation | Architect |
-| B06 | Change to event schema that is not backward compatible | Architect + Tech Lead |
-| B07 | Module deprecation decision | Architect + Tech Lead |
-| B08 | Data model change affecting multiple services | Architect |
+
+| Gate ID | Trigger                                                | Required approver         |
+| ------- | ------------------------------------------------------ | ------------------------- |
+| B01     | New service or module creation                         | Architect                 |
+| B02     | New external integration introduction                  | Architect + Tech Lead     |
+| B03     | API version bump (breaking change)                     | Architect + Tech Lead     |
+| B04     | New dependency not in approved list                    | Security Lead + Tech Lead |
+| B05     | Architecture Decision Record (ADR) finalisation        | Architect                 |
+| B06     | Change to event schema that is not backward compatible | Architect + Tech Lead     |
+| B07     | Module deprecation decision                            | Architect + Tech Lead     |
+| B08     | Data model change affecting multiple services          | Architect                 |
+
 
 ### Category C -- Specification approval gates
 
@@ -72,15 +81,17 @@ These gates exist at the boundary between planning and execution. The
 agent generates the artefact; the human confirms it is correct before
 any code is written.
 
-| Gate ID | Trigger | Required approver |
-|---|---|---|
-| C01 | Technical spec ready for review | Tech Lead |
-| C02 | Acceptance criteria generated from story | BA or Product Owner |
-| C03 | API contract draft ready for partner review | Tech Lead + Partner |
-| C04 | Data migration plan ready for review | Tech Lead + DBA |
-| C05 | Security spec section ready for review | Security Lead |
-| C06 | Epic-level spec ready for PI planning review | Architect + DM |
-| C07 | Test strategy for a new feature area | Tech Lead + QA Lead |
+
+| Gate ID | Trigger                                      | Required approver   |
+| ------- | -------------------------------------------- | ------------------- |
+| C01     | Technical spec ready for review              | Tech Lead           |
+| C02     | Acceptance criteria generated from story     | BA or Product Owner |
+| C03     | API contract draft ready for partner review  | Tech Lead + Partner |
+| C04     | Data migration plan ready for review         | Tech Lead + DBA     |
+| C05     | Security spec section ready for review       | Security Lead       |
+| C06     | Epic-level spec ready for PI planning review | Architect + DM      |
+| C07     | Test strategy for a new feature area         | Tech Lead + QA Lead |
+
 
 ### Category D -- Code review and merge gates
 
@@ -88,32 +99,36 @@ These gates exist to ensure human oversight of all code that enters
 the main branch. The Peer Review Agent assists but does not replace
 human review.
 
-| Gate ID | Trigger | Required approver |
-|---|---|---|
-| D01 | Pull request ready for merge (after agent review) | Tech Lead |
-| D02 | Security Review Agent finds a BLOCK item | Security Lead |
-| D03 | Refactor Agent completes a multi-file refactor | Tech Lead |
-| D04 | Legacy code modified by any agent | Tech Lead |
-| D05 | Test coverage drops below defined threshold | Tech Lead + QA Lead |
-| D06 | New public API endpoint added | Tech Lead + Architect |
+
+| Gate ID | Trigger                                           | Required approver     |
+| ------- | ------------------------------------------------- | --------------------- |
+| D01     | Pull request ready for merge (after agent review) | Tech Lead             |
+| D02     | Security Review Agent finds a BLOCK item          | Security Lead         |
+| D03     | Refactor Agent completes a multi-file refactor    | Tech Lead             |
+| D04     | Legacy code modified by any agent                 | Tech Lead             |
+| D05     | Test coverage drops below defined threshold       | Tech Lead + QA Lead   |
+| D06     | New public API endpoint added                     | Tech Lead + Architect |
+
 
 ### Category E -- Operational and compliance gates
 
 These gates exist to ensure humans retain accountability for operational
 and regulatory decisions.
 
-| Gate ID | Trigger | Required approver |
-|---|---|---|
-| E01 | Known error accepted with no fix decision | Tech Lead + SRE Lead |
-| E02 | Known error deferred to future sprint | Tech Lead |
-| E03 | Problem record root cause confirmed | Tech Lead |
-| E04 | Incident severity declared (P0/P1) | Tech Lead + SRE Lead |
-| E05 | Post-mortem action items approved | Tech Lead + DM |
-| E06 | Compliance exception request | Security Lead + Legal |
-| E07 | New data processing activity introduced | DPO or Security Lead |
-| E08 | External audit evidence package approved | Security Lead + CoE Lead |
-| E09 | CVE remediation plan approved | Security Lead |
-| E10 | SRE autonomy budget change | SRE Lead + Tech Lead |
+
+| Gate ID | Trigger                                   | Required approver        |
+| ------- | ----------------------------------------- | ------------------------ |
+| E01     | Known error accepted with no fix decision | Tech Lead + SRE Lead     |
+| E02     | Known error deferred to future sprint     | Tech Lead                |
+| E03     | Problem record root cause confirmed       | Tech Lead                |
+| E04     | Incident severity declared (P0/P1)        | Tech Lead + SRE Lead     |
+| E05     | Post-mortem action items approved         | Tech Lead + DM           |
+| E06     | Compliance exception request              | Security Lead + Legal    |
+| E07     | New data processing activity introduced   | DPO or Security Lead     |
+| E08     | External audit evidence package approved  | Security Lead + CoE Lead |
+| E09     | CVE remediation plan approved             | Security Lead            |
+| E10     | SRE autonomy budget change                | SRE Lead + Tech Lead     |
+
 
 ---
 
@@ -204,14 +219,12 @@ but still does not proceed autonomously.
 When the human provides the approval signal defined in the gate output:
 
 1. The agent confirms it received the approval:
-   ```
+  ```
    GATE [Gate ID] APPROVED by [Approver name/role] at [timestamp]
    Resuming task: [task description]
-   ```
-
+  ```
 2. The agent logs the approval: gate ID, approver, timestamp, decision.
-   This log entry is the audit trail for the gated action.
-
+  This log entry is the audit trail for the gated action.
 3. The agent resumes from the saved state and continues the task.
 
 ### 3.6 Step 6 -- Handle rejection
@@ -219,16 +232,14 @@ When the human provides the approval signal defined in the gate output:
 When the human rejects or requests changes:
 
 1. The agent confirms receipt:
-   ```
+  ```
    GATE [Gate ID] REJECTED by [Approver name/role] at [timestamp]
    Reason: [Approver's stated reason]
-   ```
-
+  ```
 2. If changes are requested, the agent incorporates the feedback and
-   produces updated work, then presents it at the same gate again.
-
+  produces updated work, then presents it at the same gate again.
 3. If the task is fully rejected, the agent updates the Jira ticket
-   with the rejection reason and closes the task cleanly. It does not
+  with the rejection reason and closes the task cleanly. It does not
    retry the gated action.
 
 ---
@@ -237,13 +248,15 @@ When the human rejects or requests changes:
 
 ### 4.1 Timeout by category
 
-| Category | Description | Wait timeout | Escalation action |
-|---|---|---|---|
-| A -- Production safety | Irreversible, live system | 30 minutes | Page on-call engineer |
-| B -- Architectural | Design decision | 2 business days | Notify Tech Lead and Architect |
-| C -- Specification | Spec approval | 1 business day | Notify DM and Tech Lead |
-| D -- Code review | PR approval | 1 business day | Notify Tech Lead |
-| E -- Operational | Compliance decision | 4 hours (P0/P1) or 1 business day | Notify SRE Lead or DM |
+
+| Category               | Description               | Wait timeout                      | Escalation action              |
+| ---------------------- | ------------------------- | --------------------------------- | ------------------------------ |
+| A -- Production safety | Irreversible, live system | 30 minutes                        | Page on-call engineer          |
+| B -- Architectural     | Design decision           | 2 business days                   | Notify Tech Lead and Architect |
+| C -- Specification     | Spec approval             | 1 business day                    | Notify DM and Tech Lead        |
+| D -- Code review       | PR approval               | 1 business day                    | Notify Tech Lead               |
+| E -- Operational       | Compliance decision       | 4 hours (P0/P1) or 1 business day | Notify SRE Lead or DM          |
+
 
 ### 4.2 Escalation format
 
@@ -265,6 +278,7 @@ Action required: Please review and approve or reject at [Jira ticket URL]
 ```
 
 The escalation is sent to:
+
 - The required approver's notification channel
 - The Delivery Manager for the team
 - The CoE Slack channel (#ai-engineering-commons)
@@ -289,6 +303,7 @@ it notes the pre-approval and the gate becomes informational rather than
 a hard stop.
 
 Pre-approvals must be:
+
 - Documented in `.ai/project/PREAPPROVALS.md`
 - Signed by the Tech Lead
 - Reviewed quarterly
@@ -335,6 +350,7 @@ in `COMPLIANCE_STANDARDS.md` section 4.
 ```
 
 Fields that must never be logged:
+
 - Content of the spec, code, or artefact under review
 - Personal data of any kind
 - Credentials or secrets
@@ -348,46 +364,53 @@ these maps to know which gates apply to the current task. The full
 gate sequence per flow is documented in the journey flow files, but
 the standard gates for the most common flows are:
 
-| Flow | Key HITL gates in sequence |
-|---|---|
-| J01 Bug fix | D01 (PR merge) |
-| J02 Change request | C01 (spec), D01 (PR merge) |
-| J03 New feature | C01 (spec), C02 (ACs), D01 (PR merge) |
-| J04 New epic | B01 (new service if applicable), C06 (epic spec), D01 per story |
-| J05 New integration | B02 (integration), C03 (contract), D01 (PR merge) |
-| J06 Performance issue | D01 (fix PR merge) |
-| J07 Vulnerability scan | E09 (remediation plan), D01 (patch PR merge) |
-| J08 Library upgrade | D01 per module PR |
-| J09 Integration changed | C03 (updated contract), D01 (PR merge) |
-| J10 Greenfield kickoff | B01 (service creation), B05 (ADRs), C06 (initial spec) |
-| J11 Brownfield discovery | C01 (discovery spec review) |
-| J12 Production incident | E04 (severity), A09 if Tier 4, E05 (post-mortem) |
-| J13 Data migration | C04 (migration plan), A03 (production migration) |
-| J14 Engineer onboarding | None -- informational flow only |
-| J15 Problem management | E01 or E02 (fix decision), E03 (root cause) |
+
+| Flow                     | Key HITL gates in sequence                                      |
+| ------------------------ | --------------------------------------------------------------- |
+| J01 Bug fix              | D01 (PR merge)                                                  |
+| J02 Change request       | C01 (spec), D01 (PR merge)                                      |
+| J03 New feature          | C01 (spec), C02 (ACs), D01 (PR merge)                           |
+| J04 New epic             | B01 (new service if applicable), C06 (epic spec), D01 per story |
+| J05 New integration      | B02 (integration), C03 (contract), D01 (PR merge)               |
+| J06 Performance issue    | D01 (fix PR merge)                                              |
+| J07 Vulnerability scan   | E09 (remediation plan), D01 (patch PR merge)                    |
+| J08 Library upgrade      | D01 per module PR                                               |
+| J09 Integration changed  | C03 (updated contract), D01 (PR merge)                          |
+| J10 Greenfield kickoff   | B01 (service creation), B05 (ADRs), C06 (initial spec)          |
+| J11 Brownfield discovery | C01 (discovery spec review)                                     |
+| J12 Production incident  | E04 (severity), A09 if Tier 4, E05 (post-mortem)                |
+| J13 Data migration       | C04 (migration plan), A03 (production migration)                |
+| J14 Engineer onboarding  | None -- informational flow only                                 |
+| J15 Problem management   | E01 or E02 (fix decision), E03 (root cause)                     |
+
 
 ---
 
 ## 8. Relationship to other files
 
-| File | Relationship |
-|---|---|
-| `AGENT.md` | Section 4.1 makes this file's gates absolute |
-| `AGENT_HANDOVER.md` | State saving format used at every gate |
-| `MULTI_AGENT_SETUP.md` | Gate routing between agents |
-| `sdlc/ops/SRE_AUTONOMY_BUDGET.md` | Defines Tier 1 actions exempt from pre-action gates |
-| `COMPLIANCE_STANDARDS.md` | Gate log retention and audit requirements |
-| All agent skill files | Each lists the specific gates that apply to that agent |
+
+| File                              | Relationship                                           |
+| --------------------------------- | ------------------------------------------------------ |
+| `AGENT.md`                        | Section 4.1 makes this file's gates absolute           |
+| `AGENT_HANDOVER.md`               | State saving format used at every gate                 |
+| `MULTI_AGENT_SETUP.md`            | Gate routing between agents                            |
+| `sdlc/ops/SRE_AUTONOMY_BUDGET.md` | Defines Tier 1 actions exempt from pre-action gates    |
+| `COMPLIANCE_STANDARDS.md`         | Gate log retention and audit requirements              |
+| All agent skill files             | Each lists the specific gates that apply to that agent |
+
 
 ---
 
 ## 9. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core |
-| Review cadence | Quarterly |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead, SRE Lead, Security Lead |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                 |
+| --------------- | ----------------------------------------------------- |
+| File owner      | CoE Core                                              |
+| Review cadence  | Quarterly                                             |
+| Last reviewed   | 2026-04                                               |
+| Next review due | 2026-04                                               |
+| Approvers       | CoE Lead, SRE Lead, Security Lead                     |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required |
+
+

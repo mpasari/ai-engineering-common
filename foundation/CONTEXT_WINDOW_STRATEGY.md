@@ -1,8 +1,13 @@
 # CONTEXT_WINDOW_STRATEGY.md
+
 # AI Engineering Commons -- Context Window Strategy
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core
 
 ---
@@ -16,6 +21,7 @@ to chunk large tasks, and when and how to compress context that is no
 longer needed.
 
 Referenced by:
+
 - `MEMORY_MANAGEMENT.md` section 3 -- Tier 1 in-context memory
 - `MULTI_AGENT_SETUP.md` section 9 -- context management across agents
 - All agent skill files -- each declares its context loading rules
@@ -32,15 +38,18 @@ by keeping irrelevant content in context. This file prevents both.
 Different AI models have different context window sizes. Agents must
 be aware of which model they are using and manage accordingly.
 
-| Model | Approximate context window | Practical usable limit |
-|---|---|---|
-| Claude Sonnet (current) | 200,000 tokens | 180,000 tokens (reserve 20k for output) |
-| Claude Haiku (current) | 200,000 tokens | 180,000 tokens |
-| GPT-4o | 128,000 tokens | 110,000 tokens |
-| GPT-4o mini | 128,000 tokens | 110,000 tokens |
-| Azure OpenAI GPT-4 | 128,000 tokens | 110,000 tokens |
+
+| Model                   | Approximate context window | Practical usable limit                  |
+| ----------------------- | -------------------------- | --------------------------------------- |
+| Claude Sonnet (current) | 200,000 tokens             | 180,000 tokens (reserve 20k for output) |
+| Claude Haiku (current)  | 200,000 tokens             | 180,000 tokens                          |
+| GPT-4o                  | 128,000 tokens             | 110,000 tokens                          |
+| GPT-4o mini             | 128,000 tokens             | 110,000 tokens                          |
+| Azure OpenAI GPT-4      | 128,000 tokens             | 110,000 tokens                          |
+
 
 **Token estimation rules (rough guide):**
+
 - 1 token is approximately 4 characters of English text
 - A typical foundation file (AGENT.md, SECURITY_STANDARDS.md) is 3,000-5,000 tokens
 - A typical technical spec page is 2,000-4,000 tokens
@@ -86,20 +95,22 @@ operating constraints and identity of the agent.
 Load these only when the task type requires them. Do not load all
 standards files for every task.
 
-| Task type | Load these additional files |
-|---|---|
-| Code generation (Java) | CODING_STANDARDS.md, SECURITY_STANDARDS.md, PERFORMANCE_GUIDELINES.md |
-| Code generation (TypeScript) | CODING_STANDARDS.md, SECURITY_STANDARDS.md, ACCESSIBILITY_STANDARDS.md |
-| Code generation (C#) | CODING_STANDARDS.md, SECURITY_STANDARDS.md |
-| API design or spec writing | API_DESIGN_STANDARDS.md, CODING_STANDARDS.md |
-| Security review | SECURITY_STANDARDS.md, PRIVACY_GUARDRAILS.md |
-| Accessibility review | ACCESSIBILITY_STANDARDS.md, CODING_STANDARDS.md |
-| Dependency change | DEPENDENCY_POLICY.md |
-| Any task touching personal data | PRIVACY_GUARDRAILS.md, COMPLIANCE_STANDARDS.md |
-| Observability or SRE work | GRAFANA_INTEGRATION.md, SRE files |
-| Jira operations | JIRA_INTEGRATION.md |
-| Confluence operations | CONFLUENCE_INTEGRATION.md |
-| GitHub operations | GITHUB_INTEGRATION.md |
+
+| Task type                       | Load these additional files                                            |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| Code generation (Java)          | CODING_STANDARDS.md, SECURITY_STANDARDS.md, PERFORMANCE_GUIDELINES.md  |
+| Code generation (TypeScript)    | CODING_STANDARDS.md, SECURITY_STANDARDS.md, ACCESSIBILITY_STANDARDS.md |
+| Code generation (C#)            | CODING_STANDARDS.md, SECURITY_STANDARDS.md                             |
+| API design or spec writing      | API_DESIGN_STANDARDS.md, CODING_STANDARDS.md                           |
+| Security review                 | SECURITY_STANDARDS.md, PRIVACY_GUARDRAILS.md                           |
+| Accessibility review            | ACCESSIBILITY_STANDARDS.md, CODING_STANDARDS.md                        |
+| Dependency change               | DEPENDENCY_POLICY.md                                                   |
+| Any task touching personal data | PRIVACY_GUARDRAILS.md, COMPLIANCE_STANDARDS.md                         |
+| Observability or SRE work       | GRAFANA_INTEGRATION.md, SRE files                                      |
+| Jira operations                 | JIRA_INTEGRATION.md                                                    |
+| Confluence operations           | CONFLUENCE_INTEGRATION.md                                              |
+| GitHub operations               | GITHUB_INTEGRATION.md                                                  |
+
 
 ### 3.3 Load on demand (read when needed)
 
@@ -179,13 +190,15 @@ window. These must be decomposed into chunks before starting.
 
 ### 5.1 When to chunk
 
-| Scenario | Chunk strategy |
-|---|---|
-| Brownfield codebase with 50+ files | Module-by-module, one chunk per module |
-| Epic with 20+ stories | Sprint-by-sprint, one chunk per sprint |
-| Large refactor across 30 files | File-group-by-file-group, maximum 10 files per chunk |
+
+| Scenario                             | Chunk strategy                                       |
+| ------------------------------------ | ---------------------------------------------------- |
+| Brownfield codebase with 50+ files   | Module-by-module, one chunk per module               |
+| Epic with 20+ stories                | Sprint-by-sprint, one chunk per sprint               |
+| Large refactor across 30 files       | File-group-by-file-group, maximum 10 files per chunk |
 | Vulnerability scan of large manifest | Dependency-group-by-group (test / compile / runtime) |
-| Long test suite generation | Class-by-class, one chunk per source class |
+| Long test suite generation           | Class-by-class, one chunk per source class           |
+
 
 ### 5.2 Chunk design rules
 
@@ -340,14 +353,16 @@ rule in the checklist requires clarification.
 
 ### 7.2 Anti-patterns to avoid
 
-| Anti-pattern | Problem | Fix |
-|---|---|---|
-| Loading all standards files for every task | Wastes tokens on irrelevant content | Load only task-relevant files per section 3.2 |
-| Keeping full file content after acting on it | Context fills, older content pushed out | Summarise after acting, store full content in Tier 2/3 |
-| Loading AGENT_REGISTRY.md for every task | 8,000 tokens for routing info only needed occasionally | Load on demand when routing decision needed |
-| Re-reading files that have not changed | Wastes tokens | Cache knowledge of what was read this session |
-| No state write before session end | Task is lost if session ends unexpectedly | Write Tier 2 state at every meaningful checkpoint |
-| Loading entire Confluence space | Thousands of tokens of irrelevant content | Use CQL search to find specific pages |
+
+| Anti-pattern                                 | Problem                                                | Fix                                                    |
+| -------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| Loading all standards files for every task   | Wastes tokens on irrelevant content                    | Load only task-relevant files per section 3.2          |
+| Keeping full file content after acting on it | Context fills, older content pushed out                | Summarise after acting, store full content in Tier 2/3 |
+| Loading AGENT_REGISTRY.md for every task     | 8,000 tokens for routing info only needed occasionally | Load on demand when routing decision needed            |
+| Re-reading files that have not changed       | Wastes tokens                                          | Cache knowledge of what was read this session          |
+| No state write before session end            | Task is lost if session ends unexpectedly              | Write Tier 2 state at every meaningful checkpoint      |
+| Loading entire Confluence space              | Thousands of tokens of irrelevant content              | Use CQL search to find specific pages                  |
+
 
 ---
 
@@ -371,11 +386,14 @@ compression pass before proceeding.
 
 ## 9. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core |
-| Review cadence | Quarterly -- or when new AI models with different window sizes are adopted |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                                      |
+| --------------- | -------------------------------------------------------------------------- |
+| File owner      | CoE Core                                                                   |
+| Review cadence  | Quarterly -- or when new AI models with different window sizes are adopted |
+| Last reviewed   | 2026-04                                                                    |
+| Next review due | 2026-04                                                                    |
+| Approvers       | CoE Lead                                                                   |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required                      |
+
+

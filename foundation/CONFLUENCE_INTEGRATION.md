@@ -1,8 +1,13 @@
 # CONFLUENCE_INTEGRATION.md
+
 # AI Engineering Commons -- Confluence Integration Guide
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core + Tech Lead representatives
 
 ---
@@ -16,6 +21,7 @@ Confluence remains the reliable source of truth for technical
 documentation, specifications, runbooks, and architecture records.
 
 Referenced by:
+
 - `AGENT.md` section 9 -- listed as a required integration file
 - `TOOLS_MANIFEST.md` -- T-CONF tools reference this file for permitted scope
 - `agents/SPEC_WRITER_AGENT.md` -- primary Confluence writer
@@ -28,21 +34,25 @@ Referenced by:
 
 ## 2. Confluence instance configuration
 
-| Setting | Value |
-|---|---|
-| Confluence instance type | Confluence Cloud |
-| Base URL | https://telia-company.atlassian.net/wiki |
-| Authentication | API token via environment variable CONFLUENCE_API_TOKEN |
-| API version | REST API v2 (preferred) with v1 fallback |
-| Default timezone | Europe/Stockholm (CET/CEST) |
+
+| Setting                  | Value                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| Confluence instance type | Confluence Cloud                                                                     |
+| Base URL                 | [https://telia-company.atlassian.net/wiki](https://telia-company.atlassian.net/wiki) |
+| Authentication           | API token via environment variable CONFLUENCE_API_TOKEN                              |
+| API version              | REST API v2 (preferred) with v1 fallback                                             |
+| Default timezone         | Europe/Stockholm (CET/CEST)                                                          |
+
 
 **API base paths:**
+
 ```
 REST v2: https://telia-company.atlassian.net/wiki/api/v2
 REST v1: https://telia-company.atlassian.net/wiki/rest/api
 ```
 
 **Authentication header:**
+
 ```
 Authorization: Basic {base64(email:api_token)}
 Content-Type: application/json
@@ -57,13 +67,15 @@ listed here requires explicit human approval via a HITL gate.
 
 ### 3.1 Permitted spaces
 
-| Space key | Space name | Primary purpose | Agent write access |
-|---|---|---|---|
-| AIENG | AI Engineering Commons | Commons documentation, CoE artifacts | CoE agents |
-| ARCH | Architecture | System architecture, ADRs, tech radar | Arch Doc Agent |
-| ENG | Engineering | Technical specs, coding guides | Spec Writer, Documentation |
-| OPS | Operations | Runbooks, incident records, KEDB | SRE, Incident Response, Problem Management |
-| PROJ | [Project space] | Project-specific documentation | Project-scoped agents |
+
+| Space key | Space name             | Primary purpose                       | Agent write access                         |
+| --------- | ---------------------- | ------------------------------------- | ------------------------------------------ |
+| AIENG     | AI Engineering Commons | Commons documentation, CoE artifacts  | CoE agents                                 |
+| ARCH      | Architecture           | System architecture, ADRs, tech radar | Arch Doc Agent                             |
+| ENG       | Engineering            | Technical specs, coding guides        | Spec Writer, Documentation                 |
+| OPS       | Operations             | Runbooks, incident records, KEDB      | SRE, Incident Response, Problem Management |
+| PROJ      | [Project space]        | Project-specific documentation        | Project-scoped agents                      |
+
 
 **Note for project setup:** Each team consuming the commons adds their
 project space key to their project-layer `OVERRIDES/CONFLUENCE_INTEGRATION.md`
@@ -118,21 +130,24 @@ Labels:   [At least one label from section 5]
 
 ### 4.2 Page title conventions
 
-| Page type | Title format | Example |
-|---|---|---|
-| Technical spec | [Feature name] -- Technical spec | Order cancellation -- Technical spec |
-| ADR | ADR-[NNN] -- [Decision title] | ADR-042 -- Use Kafka for async order events |
-| Runbook | [Service] -- [Scenario] runbook | Orders service -- Deployment runbook |
-| API docs | [Service name] API -- v[N] | Orders API -- v1 |
-| KEDB entry | KEDB-[NNN] -- [Problem title] | KEDB-007 -- Memory leak on batch job start |
-| Incident record | INC-[date] -- [Summary] | INC-20250115 -- Auth service unavailable |
-| Post-mortem | POST-MORTEM -- [date] -- [Summary] | POST-MORTEM -- 20250115 -- Auth outage |
-| Architecture overview | [System name] -- Architecture overview | Orders system -- Architecture overview |
-| Sprint report | Sprint [N] -- [Team] -- Report | Sprint 42 -- Orders team -- Report |
+
+| Page type             | Title format                           | Example                                     |
+| --------------------- | -------------------------------------- | ------------------------------------------- |
+| Technical spec        | [Feature name] -- Technical spec       | Order cancellation -- Technical spec        |
+| ADR                   | ADR-[NNN] -- [Decision title]          | ADR-042 -- Use Kafka for async order events |
+| Runbook               | [Service] -- [Scenario] runbook        | Orders service -- Deployment runbook        |
+| API docs              | [Service name] API -- v[N]             | Orders API -- v1                            |
+| KEDB entry            | KEDB-[NNN] -- [Problem title]          | KEDB-007 -- Memory leak on batch job start  |
+| Incident record       | INC-[date] -- [Summary]                | INC-20250115 -- Auth service unavailable    |
+| Post-mortem           | POST-MORTEM -- [date] -- [Summary]     | POST-MORTEM -- 20250115 -- Auth outage      |
+| Architecture overview | [System name] -- Architecture overview | Orders system -- Architecture overview      |
+| Sprint report         | Sprint [N] -- [Team] -- Report         | Sprint 42 -- Orders team -- Report          |
+
 
 ### 4.3 Page versioning
 
 Confluence tracks page versions automatically. Agents must:
+
 - Always read the current page version before updating
 - Pass the current version number in the update request
 - Never use version 0 or assume version 1 for existing pages
@@ -166,29 +181,33 @@ label plus at least one content label.
 
 ### 5.1 System labels (applied automatically by agents)
 
-| Label | When applied |
-|---|---|
-| `ai-generated` | All agent-created content |
-| `ai-updated` | Existing page updated by an agent |
-| `awaiting-review` | Content pending human review |
-| `approved` | Content approved by human reviewer |
-| `draft` | Content not yet ready for use |
+
+| Label             | When applied                       |
+| ----------------- | ---------------------------------- |
+| `ai-generated`    | All agent-created content          |
+| `ai-updated`      | Existing page updated by an agent  |
+| `awaiting-review` | Content pending human review       |
+| `approved`        | Content approved by human reviewer |
+| `draft`           | Content not yet ready for use      |
+
 
 ### 5.2 Content labels
 
-| Label | Page type |
-|---|---|
-| `technical-spec` | Technical specification pages |
-| `adr` | Architecture Decision Records |
-| `runbook` | Operational runbooks |
-| `api-docs` | API documentation |
-| `kedb` | Known Error Database entries |
-| `incident` | Incident records |
-| `post-mortem` | Post-mortem documents |
-| `architecture` | Architecture overview and diagrams |
-| `sprint-report` | Sprint and PI reports |
-| `workaround` | Known error workaround instructions |
-| `onboarding` | New engineer onboarding content |
+
+| Label            | Page type                           |
+| ---------------- | ----------------------------------- |
+| `technical-spec` | Technical specification pages       |
+| `adr`            | Architecture Decision Records       |
+| `runbook`        | Operational runbooks                |
+| `api-docs`       | API documentation                   |
+| `kedb`           | Known Error Database entries        |
+| `incident`       | Incident records                    |
+| `post-mortem`    | Post-mortem documents               |
+| `architecture`   | Architecture overview and diagrams  |
+| `sprint-report`  | Sprint and PI reports               |
+| `workaround`     | Known error workaround instructions |
+| `onboarding`     | New engineer onboarding content     |
+
 
 ---
 
@@ -211,6 +230,7 @@ renders the page title as H1 automatically.
 ### 6.2 Standard page sections by type
 
 **Technical spec page:**
+
 ```
 ## Overview
 [Problem statement and context -- 2-3 paragraphs]
@@ -244,6 +264,7 @@ renders the page title as H1 automatically.
 ```
 
 **ADR page:**
+
 ```
 ## Status
 [Proposed / Accepted / Deprecated / Superseded by ADR-NNN]
@@ -268,6 +289,7 @@ renders the page title as H1 automatically.
 ```
 
 **Runbook page:**
+
 ```
 ## Purpose
 [What this runbook is for and when to use it]
@@ -295,6 +317,7 @@ Expected output: [What you should see]
 ```
 
 **KEDB workaround page:**
+
 ```
 ## What the user sees
 [Exact symptom description from the user perspective]
@@ -366,19 +389,21 @@ Agents use Confluence info panels for important callouts:
 Each page type has a primary owner agent. Only the owner agent creates
 and updates that page type. Other agents may read all pages.
 
-| Page type | Owner agent | May also update |
-|---|---|---|
-| Technical spec | Spec Writer | Documentation (minor updates after merge) |
-| ADR | Arch Doc | Spec Writer (status field only) |
-| Architecture overview | Arch Doc | -- |
-| API documentation | Documentation | Spec Writer |
-| Runbook | Release, Documentation | SRE (execution notes only) |
-| KEDB entry (Jira) | Problem Management | -- |
-| KEDB workaround (Confluence) | Problem Management | SRE (frequency counts) |
-| Incident record | Incident Response | SRE |
-| Post-mortem | Incident Response | -- |
-| Sprint report | Stakeholder Report | Planning |
-| Onboarding guide | Documentation | Onboarding Agent |
+
+| Page type                    | Owner agent            | May also update                           |
+| ---------------------------- | ---------------------- | ----------------------------------------- |
+| Technical spec               | Spec Writer            | Documentation (minor updates after merge) |
+| ADR                          | Arch Doc               | Spec Writer (status field only)           |
+| Architecture overview        | Arch Doc               | --                                        |
+| API documentation            | Documentation          | Spec Writer                               |
+| Runbook                      | Release, Documentation | SRE (execution notes only)                |
+| KEDB entry (Jira)            | Problem Management     | --                                        |
+| KEDB workaround (Confluence) | Problem Management     | SRE (frequency counts)                    |
+| Incident record              | Incident Response      | SRE                                       |
+| Post-mortem                  | Incident Response      | --                                        |
+| Sprint report                | Stakeholder Report     | Planning                                  |
+| Onboarding guide             | Documentation          | Onboarding Agent                          |
+
 
 ---
 
@@ -458,14 +483,16 @@ specification without searching.
 
 ## 10. Rate limiting and error handling
 
-| Response code | Meaning | Agent action |
-|---|---|---|
-| 429 Too Many Requests | Rate limit hit | Wait for Retry-After, then retry |
-| 409 Conflict | Page version conflict | Re-read current version, merge, retry |
-| 404 Not Found | Page or space does not exist | Stop, flag to human -- do not create replacement |
-| 403 Forbidden | Insufficient permissions | Stop, flag permission error to human |
-| 400 Bad Request | Invalid content or metadata | Log error, do not retry, flag to human |
-| 503 Service Unavailable | Confluence temporarily unavailable | Retry with exponential backoff (max 3) |
+
+| Response code           | Meaning                            | Agent action                                     |
+| ----------------------- | ---------------------------------- | ------------------------------------------------ |
+| 429 Too Many Requests   | Rate limit hit                     | Wait for Retry-After, then retry                 |
+| 409 Conflict            | Page version conflict              | Re-read current version, merge, retry            |
+| 404 Not Found           | Page or space does not exist       | Stop, flag to human -- do not create replacement |
+| 403 Forbidden           | Insufficient permissions           | Stop, flag permission error to human             |
+| 400 Bad Request         | Invalid content or metadata        | Log error, do not retry, flag to human           |
+| 503 Service Unavailable | Confluence temporarily unavailable | Retry with exponential backoff (max 3)           |
+
 
 **Version conflict (409) handling:**
 
@@ -475,7 +502,7 @@ the same page concurrently. Agents handle this by:
 1. Re-reading the current page version
 2. Identifying what changed in the concurrent edit
 3. Merging the changes carefully -- agent content goes in agent sections,
-   human content is preserved exactly
+  human content is preserved exactly
 4. Retrying the update with the new version number
 5. If merge is not possible cleanly, flagging to human for manual resolution
 
@@ -486,23 +513,28 @@ the same page concurrently. Agents handle this by:
 All agents authenticate to Confluence using the same service account
 as Jira -- this is standard for Atlassian Cloud.
 
-| Setting | Value |
-|---|---|
-| Service account email | ai-agents@telia-company.com |
-| Display name | AI Engineering Agent |
-| Token storage | Azure Key Vault -- secret name: confluence-api-token |
-| Token rotation | Quarterly -- DevOps responsibility |
-| Permissions | Space Member (create/edit) on all permitted spaces |
+
+| Setting               | Value                                                             |
+| --------------------- | ----------------------------------------------------------------- |
+| Service account email | [ai-agents@telia-company.com](mailto:ai-agents@telia-company.com) |
+| Display name          | AI Engineering Agent                                              |
+| Token storage         | Azure Key Vault -- secret name: confluence-api-token              |
+| Token rotation        | Quarterly -- DevOps responsibility                                |
+| Permissions           | Space Member (create/edit) on all permitted spaces                |
+
 
 ---
 
 ## 12. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core + Tech Lead representatives |
-| Review cadence | Quarterly -- or when Confluence configuration changes |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead, Tech Lead representative |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                 |
+| --------------- | ----------------------------------------------------- |
+| File owner      | CoE Core + Tech Lead representatives                  |
+| Review cadence  | Quarterly -- or when Confluence configuration changes |
+| Last reviewed   | 2026-04                                               |
+| Next review due | 2026-04                                               |
+| Approvers       | CoE Lead, Tech Lead representative                    |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required |
+
+

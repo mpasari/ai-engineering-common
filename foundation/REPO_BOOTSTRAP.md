@@ -1,8 +1,13 @@
 # REPO_BOOTSTRAP.md
+
 # AI Engineering Commons -- Repository Bootstrap Guide
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core
 
 ---
@@ -15,6 +20,7 @@ time you set up a project. After initial setup, day-to-day use is just
 `npx aec update` whenever you update project-layer files.
 
 This guide covers:
+
 - Installing the commons package
 - Running the init command
 - Filling in the project-layer stub files
@@ -72,6 +78,7 @@ npm install @telia-company/ai-engineering-common
 ```
 
 Expected output:
+
 ```
 added 1 package, and audited 2 packages in Xs
 found 0 vulnerabilities
@@ -84,6 +91,7 @@ npx aec init
 ```
 
 Expected output:
+
 ```
   aec v1.0.0 -- initialising project
 
@@ -270,15 +278,19 @@ curl http://localhost:8080/health
 ```
 
 ## Seed data
+
 [How to load test data -- migration script, seed file, etc.]
 
 ## Mock dependencies
+
 [Which external services are mocked and how]
 
 ## Teardown
+
 ```powershell
 docker-compose -f docker-compose.test.yml down -v
 ```
+
 ```
 
 ### 4.8 SRE_SERVICE_CONFIG.md -- fill in for production services
@@ -407,6 +419,7 @@ Verify .gitignore includes:
 ### 8.1 When to run npx aec update
 
 Run it when:
+
 - You update any file in `.ai/project/`
 - A new version of `@telia-company/ai-engineering-common` is installed
 - You add a new module to MODULE_REGISTRY.md
@@ -458,24 +471,29 @@ If your project needs to diverge from a commons standard:
 
 ## 9. Troubleshooting
 
-| Problem | Likely cause | Fix |
-|---|---|---|
-| `npm install` fails with 401 | GITHUB_TOKEN not set or expired | Set/refresh the token, re-run |
-| `npx aec init` creates no files | templates/project-layer/ is empty | Update commons to latest version |
-| CLAUDE.md has diamond characters | BOM encoding issue | See CODING_STANDARDS.md BOM fix |
-| Copilot suggestions do not reflect project | Instructions file not loaded | Check Copilot settings in VS Code |
-| `.cursorrules` is empty | CODING_STANDARDS.md not found in commons | Verify commons install, run aec update |
-| `npm list` shows (empty) | Link was broken by npm install | Re-run `npm link @telia-company/ai-engineering-common` |
+
+| Problem                                    | Likely cause                             | Fix                                                    |
+| ------------------------------------------ | ---------------------------------------- | ------------------------------------------------------ |
+| `npm install` fails with 401               | GITHUB_TOKEN not set or expired          | Set/refresh the token, re-run                          |
+| `npx aec init` creates no files            | templates/project-layer/ is empty        | Update commons to latest version                       |
+| CLAUDE.md has diamond characters           | BOM encoding issue                       | See CODING_STANDARDS.md BOM fix                        |
+| Copilot suggestions do not reflect project | Instructions file not loaded             | Check Copilot settings in VS Code                      |
+| `.cursorrules` is empty                    | CODING_STANDARDS.md not found in commons | Verify commons install, run aec update                 |
+| `npm list` shows (empty)                   | Link was broken by npm install           | Re-run `npm link @telia-company/ai-engineering-common` |
+
 
 ---
 
 ## 10. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core |
-| Review cadence | Quarterly -- or when the aec CLI changes |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                 |
+| --------------- | ----------------------------------------------------- |
+| File owner      | CoE Core                                              |
+| Review cadence  | Quarterly -- or when the aec CLI changes              |
+| Last reviewed   | 2026-04                                               |
+| Next review due | 2026-05                                               |
+| Approvers       | CoE Lead                                              |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required |
+
+

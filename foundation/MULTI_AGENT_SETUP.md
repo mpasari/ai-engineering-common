@@ -1,8 +1,13 @@
 # MULTI_AGENT_SETUP.md
+
 # AI Engineering Commons -- Multi-Agent Topology and Routing
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core
 
 ---
@@ -15,12 +20,14 @@ across journey flows. The Orchestrator Agent (A01) reads this file as its
 primary routing guide.
 
 Referenced by:
+
 - `agents/ORCHESTRATOR_AGENT.md` -- primary consumer
 - `AGENT_REGISTRY.md` -- agent definitions that this file routes between
 - `AGENT_HANDOVER.md` -- handover format used at every routing point
 - All agent skill files -- each references its position in the topology
 
 This file answers three questions for the Orchestrator:
+
 1. Which agent handles a given task type?
 2. Which agents work in sequence for a given journey flow?
 3. What happens when an agent cannot complete its task?
@@ -69,34 +76,36 @@ Rules are evaluated top to bottom -- first match wins.
 
 ### 3.1 Primary routing table
 
-| Task keyword or context | First agent | Journey flow |
-|---|---|---|
-| "bug", "defect", "error reported", "not working" | A17 Bug Triage | J01 |
-| "change request", "CR", "modify existing" | A06 Dependency Mapper | J02 |
-| "new feature", "implement story", "build" | A07 Spec Writer | J03 |
-| "epic", "PI planning", "large scope" | A06 Dependency Mapper | J04 |
-| "integration", "connect to", "third-party API" | A06 Dependency Mapper | J05 |
-| "slow", "performance", "latency", "SLO breach" | A18 Performance | J06 |
-| "vulnerability", "CVE", "security scan" | A23 Vuln Scan | J07 |
-| "upgrade", "library update", "version bump" | A06 Dependency Mapper | J08 |
-| "partner changed", "integration broke", "API changed" | A06 Dependency Mapper | J09 |
-| "new project", "greenfield", "start from scratch" | A13 Greenfield Scaffold | J10 |
-| "existing codebase", "brownfield", "take over" | A14 Brownfield Discovery | J11 |
-| "incident", "production down", "P0", "P1" | A39 Incident Response | J12 |
-| "database migration", "schema change" | A12 Data Migration | J13 |
-| "new engineer", "onboarding", "first day" | A33 Onboarding | J14 |
-| "known error", "problem record", "KEDB" | A40 Problem Management | J15 |
-| "generate tests", "test coverage" | A15 Test Gen | J03 subset |
-| "review PR", "check code" | A27 Peer Review | J03 subset |
-| "release notes", "changelog" | A28 Release | J03 subset |
-| "architecture doc", "C4 diagram" | A31 Arch Doc | any |
-| "feature flag", "rollout" | A35 Feature Management | any |
-| "compliance report", "audit" | A26 Compliance | any |
-| "sprint report", "PI report" | A32 Stakeholder Report | any |
-| "standup", "sprint plan" | A03 Planning | any |
-| "estimate", "story points" | A05 Estimation | any |
-| "scaffold infra", "new environment" | A36 Infra | J10 subset |
-| "set up monitoring", "dashboards" | A37 Observability Setup | J10 subset |
+
+| Task keyword or context                               | First agent              | Journey flow |
+| ----------------------------------------------------- | ------------------------ | ------------ |
+| "bug", "defect", "error reported", "not working"      | A17 Bug Triage           | J01          |
+| "change request", "CR", "modify existing"             | A06 Dependency Mapper    | J02          |
+| "new feature", "implement story", "build"             | A07 Spec Writer          | J03          |
+| "epic", "PI planning", "large scope"                  | A06 Dependency Mapper    | J04          |
+| "integration", "connect to", "third-party API"        | A06 Dependency Mapper    | J05          |
+| "slow", "performance", "latency", "SLO breach"        | A18 Performance          | J06          |
+| "vulnerability", "CVE", "security scan"               | A23 Vuln Scan            | J07          |
+| "upgrade", "library update", "version bump"           | A06 Dependency Mapper    | J08          |
+| "partner changed", "integration broke", "API changed" | A06 Dependency Mapper    | J09          |
+| "new project", "greenfield", "start from scratch"     | A13 Greenfield Scaffold  | J10          |
+| "existing codebase", "brownfield", "take over"        | A14 Brownfield Discovery | J11          |
+| "incident", "production down", "P0", "P1"             | A39 Incident Response    | J12          |
+| "database migration", "schema change"                 | A12 Data Migration       | J13          |
+| "new engineer", "onboarding", "first day"             | A33 Onboarding           | J14          |
+| "known error", "problem record", "KEDB"               | A40 Problem Management   | J15          |
+| "generate tests", "test coverage"                     | A15 Test Gen             | J03 subset   |
+| "review PR", "check code"                             | A27 Peer Review          | J03 subset   |
+| "release notes", "changelog"                          | A28 Release              | J03 subset   |
+| "architecture doc", "C4 diagram"                      | A31 Arch Doc             | any          |
+| "feature flag", "rollout"                             | A35 Feature Management   | any          |
+| "compliance report", "audit"                          | A26 Compliance           | any          |
+| "sprint report", "PI report"                          | A32 Stakeholder Report   | any          |
+| "standup", "sprint plan"                              | A03 Planning             | any          |
+| "estimate", "story points"                            | A05 Estimation           | any          |
+| "scaffold infra", "new environment"                   | A36 Infra                | J10 subset   |
+| "set up monitoring", "dashboards"                     | A37 Observability Setup  | J10 subset   |
+
 
 ### 3.2 Ambiguous task resolution
 
@@ -487,11 +496,13 @@ Agent confidence: Low
 
 Agents may call other agents directly without routing through the
 Orchestrator only when:
+
 - The call is listed in the calling agent's `Calls:` field in AGENT_REGISTRY.md
 - The task context is fully contained in a single handover package
 - The receiving agent does not need additional context from the Orchestrator
 
 Examples of permitted direct calls:
+
 - Peer Review Agent calls Security Review Agent directly
 - Code Gen Agent calls Test Gen Agent directly
 - Feature Validation Agent calls AC Executor Agent directly
@@ -543,11 +554,11 @@ The Orchestrator manages this by:
 
 1. Maintaining a compressed task summary that grows with each step
 2. Each handover package contains only the minimum context for the
-   next step (per AGENT_HANDOVER.md principle 2.3)
+  next step (per AGENT_HANDOVER.md principle 2.3)
 3. Completed steps are summarised in a Jira comment -- agents read
-   this comment to reconstruct history if needed
+  this comment to reconstruct history if needed
 4. The Orchestrator never passes the full history to a specialist agent
-   unless the specialist explicitly needs it
+  unless the specialist explicitly needs it
 
 See `MEMORY_MANAGEMENT.md` and `CONTEXT_WINDOW_STRATEGY.md` for the
 detailed protocols.
@@ -569,11 +580,14 @@ When a new agent is added to the commons:
 
 ## 11. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core |
-| Review cadence | Quarterly -- or when agents or journey flows change |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                 |
+| --------------- | ----------------------------------------------------- |
+| File owner      | CoE Core                                              |
+| Review cadence  | Quarterly -- or when agents or journey flows change   |
+| Last reviewed   | 2026-04                                               |
+| Next review due | 2026-05                                               |
+| Approvers       | CoE Lead                                              |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required |
+
+

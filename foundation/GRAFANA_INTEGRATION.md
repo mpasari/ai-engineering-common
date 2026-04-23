@@ -1,8 +1,13 @@
 # GRAFANA_INTEGRATION.md
+
 # AI Engineering Commons -- Grafana Integration Guide
+
 # Version: 1.0.0
+
 # Status: Active
+
 # Last updated: 2025-01
+
 # Owner: CoE Core + SRE Lead + DevOps
 
 ---
@@ -16,6 +21,7 @@ alert webhook handling, and the SRE Dashboard Registry that governs
 which signals the SRE Agent monitors.
 
 Referenced by:
+
 - `AGENT.md` section 9 -- listed as a required integration file
 - `TOOLS_MANIFEST.md` -- T-OBS tools reference this file
 - `agents/SRE_AGENT.md` -- primary consumer of all observability tools
@@ -30,50 +36,60 @@ Referenced by:
 
 ### 2.1 Grafana
 
-| Setting | Value |
-|---|---|
-| Instance type | Grafana Cloud |
-| Base URL | https://telia-company.grafana.net |
-| Authentication | Service account token via Azure Key Vault |
-| API version | Grafana HTTP API v1 |
-| Default organisation ID | 1 |
+
+| Setting                 | Value                                                                  |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Instance type           | Grafana Cloud                                                          |
+| Base URL                | [https://telia-company.grafana.net](https://telia-company.grafana.net) |
+| Authentication          | Service account token via Azure Key Vault                              |
+| API version             | Grafana HTTP API v1                                                    |
+| Default organisation ID | 1                                                                      |
+
 
 **Authentication header:**
+
 ```
 Authorization: Bearer {GRAFANA_SERVICE_ACCOUNT_TOKEN}
 Content-Type: application/json
 ```
 
 **API base path:**
+
 ```
 https://telia-company.grafana.net/api
 ```
 
 ### 2.2 Prometheus
 
-| Setting | Value |
-|---|---|
-| Endpoint | https://prometheus.telia-company.grafana.net |
-| Authentication | Grafana Cloud credentials (same token) |
-| API path | /api/prom/api/v1 |
-| Retention period | 13 months |
+
+| Setting          | Value                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| Endpoint         | [https://prometheus.telia-company.grafana.net](https://prometheus.telia-company.grafana.net) |
+| Authentication   | Grafana Cloud credentials (same token)                                                       |
+| API path         | /api/prom/api/v1                                                                             |
+| Retention period | 13 months                                                                                    |
+
 
 ### 2.3 Loki (log aggregation)
 
-| Setting | Value |
-|---|---|
-| Endpoint | https://logs.telia-company.grafana.net |
-| Authentication | Grafana Cloud credentials (same token) |
-| API path | /loki/api/v1 |
-| Retention period | 30 days |
+
+| Setting          | Value                                                                            |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Endpoint         | [https://logs.telia-company.grafana.net](https://logs.telia-company.grafana.net) |
+| Authentication   | Grafana Cloud credentials (same token)                                           |
+| API path         | /loki/api/v1                                                                     |
+| Retention period | 30 days                                                                          |
+
 
 ### 2.4 Alertmanager
 
-| Setting | Value |
-|---|---|
-| Webhook receiver URL | https://alertmanager.telia-company.grafana.net |
-| Webhook format | Alertmanager v2 webhook payload |
-| SRE Agent webhook endpoint | Configured in Alertmanager routing rules |
+
+| Setting                    | Value                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| Webhook receiver URL       | [https://alertmanager.telia-company.grafana.net](https://alertmanager.telia-company.grafana.net) |
+| Webhook format             | Alertmanager v2 webhook payload                                                                  |
+| SRE Agent webhook endpoint | Configured in Alertmanager routing rules                                                         |
+
 
 ---
 
@@ -128,19 +144,21 @@ Each entry has this structure:
 The Observability Setup Agent creates these panels for every new service
 and registers them in the SRE Dashboard Registry.
 
-| Panel name | Metric type | SLO source |
-|---|---|---|
-| Request rate | Counter | `sdlc/ops/SLA_DEFINITIONS.md` |
-| Error rate (4xx) | Counter ratio | `sdlc/ops/SLA_DEFINITIONS.md` |
-| Error rate (5xx) | Counter ratio | `sdlc/ops/SLA_DEFINITIONS.md` |
-| P50 latency | Histogram quantile | `PERFORMANCE_GUIDELINES.md` section 7.1 |
-| P95 latency | Histogram quantile | `PERFORMANCE_GUIDELINES.md` section 7.1 |
-| P99 latency | Histogram quantile | `PERFORMANCE_GUIDELINES.md` section 7.1 |
-| Active instances | Gauge | Per service min/max from infra spec |
-| Memory usage | Gauge | 80% of pod memory limit |
-| CPU usage | Gauge | 70% of pod CPU limit |
-| Database connection pool | Gauge | Per `PERFORMANCE_GUIDELINES.md` section 2.4 |
-| Kafka consumer lag | Gauge | Per `PERFORMANCE_GUIDELINES.md` section 7.3 |
+
+| Panel name               | Metric type        | SLO source                                  |
+| ------------------------ | ------------------ | ------------------------------------------- |
+| Request rate             | Counter            | `sdlc/ops/SLA_DEFINITIONS.md`               |
+| Error rate (4xx)         | Counter ratio      | `sdlc/ops/SLA_DEFINITIONS.md`               |
+| Error rate (5xx)         | Counter ratio      | `sdlc/ops/SLA_DEFINITIONS.md`               |
+| P50 latency              | Histogram quantile | `PERFORMANCE_GUIDELINES.md` section 7.1     |
+| P95 latency              | Histogram quantile | `PERFORMANCE_GUIDELINES.md` section 7.1     |
+| P99 latency              | Histogram quantile | `PERFORMANCE_GUIDELINES.md` section 7.1     |
+| Active instances         | Gauge              | Per service min/max from infra spec         |
+| Memory usage             | Gauge              | 80% of pod memory limit                     |
+| CPU usage                | Gauge              | 70% of pod CPU limit                        |
+| Database connection pool | Gauge              | Per `PERFORMANCE_GUIDELINES.md` section 2.4 |
+| Kafka consumer lag       | Gauge              | Per `PERFORMANCE_GUIDELINES.md` section 7.3 |
+
 
 ---
 
@@ -169,6 +187,7 @@ GET /api/prom/api/v1/query_range
 ```
 
 **Example -- query P95 latency for order-service over last 5 minutes:**
+
 ```
 GET /api/prom/api/v1/query_range
   ?query=histogram_quantile(0.95,rate(http_request_duration_seconds_bucket{service="order-service"}[5m]))
@@ -178,6 +197,7 @@ GET /api/prom/api/v1/query_range
 ```
 
 **Response format:**
+
 ```json
 {
   "status": "success",
@@ -291,19 +311,21 @@ All Telia services must expose metrics using these standard names.
 The Observability Setup Agent generates the instrumentation code
 that produces these metrics.
 
-| Metric name | Type | Labels | Description |
-|---|---|---|---|
-| `http_requests_total` | Counter | service, method, path, status | Total HTTP requests |
-| `http_request_duration_seconds` | Histogram | service, method, path | Request duration |
-| `db_query_duration_seconds` | Histogram | service, query_name | Database query duration |
-| `db_connection_pool_size` | Gauge | service, pool | Total connection pool size |
-| `db_connection_pool_active` | Gauge | service, pool | Active connections |
-| `kafka_consumer_lag` | Gauge | service, topic, consumer_group | Consumer lag in messages |
-| `kafka_producer_errors_total` | Counter | service, topic | Producer error count |
-| `jvm_memory_used_bytes` | Gauge | service, area | JVM memory usage |
-| `jvm_threads_live_threads` | Gauge | service | Live thread count |
-| `cache_hit_ratio` | Gauge | service, cache_name | Cache hit ratio |
-| `circuit_breaker_state` | Gauge | service, name | Circuit breaker state (0=closed, 1=open) |
+
+| Metric name                     | Type      | Labels                         | Description                              |
+| ------------------------------- | --------- | ------------------------------ | ---------------------------------------- |
+| `http_requests_total`           | Counter   | service, method, path, status  | Total HTTP requests                      |
+| `http_request_duration_seconds` | Histogram | service, method, path          | Request duration                         |
+| `db_query_duration_seconds`     | Histogram | service, query_name            | Database query duration                  |
+| `db_connection_pool_size`       | Gauge     | service, pool                  | Total connection pool size               |
+| `db_connection_pool_active`     | Gauge     | service, pool                  | Active connections                       |
+| `kafka_consumer_lag`            | Gauge     | service, topic, consumer_group | Consumer lag in messages                 |
+| `kafka_producer_errors_total`   | Counter   | service, topic                 | Producer error count                     |
+| `jvm_memory_used_bytes`         | Gauge     | service, area                  | JVM memory usage                         |
+| `jvm_threads_live_threads`      | Gauge     | service                        | Live thread count                        |
+| `cache_hit_ratio`               | Gauge     | service, cache_name            | Cache hit ratio                          |
+| `circuit_breaker_state`         | Gauge     | service, name                  | Circuit breaker state (0=closed, 1=open) |
+
 
 ### 5.2 Standard PromQL expressions
 
@@ -510,22 +532,26 @@ The SRE Agent deduplicates using the `fingerprint` field:
 
 ### 8.1 Dashboard naming
 
-| Convention | Format | Example |
-|---|---|---|
-| Dashboard title | {Service name} -- {Type} | Order service -- Overview |
-| Dashboard UID | {service-kebab-case}-{type-kebab-case} | order-service-overview |
-| Dashboard tags | ai-generated, {service-name}, sre-monitored | ai-generated, order-service |
-| Folder | Service name | Order service |
+
+| Convention      | Format                                      | Example                     |
+| --------------- | ------------------------------------------- | --------------------------- |
+| Dashboard title | {Service name} -- {Type}                    | Order service -- Overview   |
+| Dashboard UID   | {service-kebab-case}-{type-kebab-case}      | order-service-overview      |
+| Dashboard tags  | ai-generated, {service-name}, sre-monitored | ai-generated, order-service |
+| Folder          | Service name                                | Order service               |
+
 
 ### 8.2 Alert rule naming
 
-| Convention | Format | Example |
-|---|---|---|
-| Alert group | {Service name} -- SLO alerts | Order service -- SLO alerts |
-| Alert name | {Service} -- {What is wrong} | Order service -- High error rate |
-| Summary annotation | {What happened} on {service} | High 5xx error rate on order-service |
-| Description annotation | Include current value and threshold | Error rate is 2.3% (threshold: 1%) |
-| Runbook annotation | Confluence runbook URL | https://... |
+
+| Convention             | Format                              | Example                              |
+| ---------------------- | ----------------------------------- | ------------------------------------ |
+| Alert group            | {Service name} -- SLO alerts        | Order service -- SLO alerts          |
+| Alert name             | {Service} -- {What is wrong}        | Order service -- High error rate     |
+| Summary annotation     | {What happened} on {service}        | High 5xx error rate on order-service |
+| Description annotation | Include current value and threshold | Error rate is 2.3% (threshold: 1%)   |
+| Runbook annotation     | Confluence runbook URL              | https://...                          |
+
 
 ---
 
@@ -590,13 +616,15 @@ checks because it directly confirms user-facing impact.
 
 ## 11. Rate limiting and error handling
 
-| Response code | Meaning | Agent action |
-|---|---|---|
-| 429 Too Many Requests | API rate limit hit | Wait 60 seconds, retry |
-| 401 Unauthorized | Token expired or invalid | Stop, flag to DevOps -- token rotation needed |
-| 403 Forbidden | Insufficient permissions | Stop, flag to SRE Lead |
-| 404 Not Found | Dashboard or panel does not exist | Stop, flag -- do not create replacement without approval |
-| 503 Service Unavailable | Grafana temporarily unavailable | Retry with exponential backoff. If unavailable > 5 minutes, notify SRE Lead. |
+
+| Response code           | Meaning                           | Agent action                                                                 |
+| ----------------------- | --------------------------------- | ---------------------------------------------------------------------------- |
+| 429 Too Many Requests   | API rate limit hit                | Wait 60 seconds, retry                                                       |
+| 401 Unauthorized        | Token expired or invalid          | Stop, flag to DevOps -- token rotation needed                                |
+| 403 Forbidden           | Insufficient permissions          | Stop, flag to SRE Lead                                                       |
+| 404 Not Found           | Dashboard or panel does not exist | Stop, flag -- do not create replacement without approval                     |
+| 503 Service Unavailable | Grafana temporarily unavailable   | Retry with exponential backoff. If unavailable > 5 minutes, notify SRE Lead. |
+
 
 **Grafana unavailability during active monitoring:**
 
@@ -609,13 +637,15 @@ loop.
 
 ## 12. Agent service account
 
-| Setting | Value |
-|---|---|
-| Service account name | ai-sre-agent |
-| Role | Viewer (read) + Editor (for Observability Setup Agent) |
-| Token storage | Azure Key Vault -- secret name: grafana-agent-token |
-| Token rotation | Quarterly -- DevOps responsibility |
-| Scope | All dashboards in permitted folders only |
+
+| Setting              | Value                                                  |
+| -------------------- | ------------------------------------------------------ |
+| Service account name | ai-sre-agent                                           |
+| Role                 | Viewer (read) + Editor (for Observability Setup Agent) |
+| Token storage        | Azure Key Vault -- secret name: grafana-agent-token    |
+| Token rotation       | Quarterly -- DevOps responsibility                     |
+| Scope                | All dashboards in permitted folders only               |
+
 
 The SRE Agent uses the Viewer role for all observation operations.
 The Observability Setup Agent requires the Editor role to create
@@ -626,11 +656,14 @@ tokens to enforce least privilege.
 
 ## 13. Version and review
 
-| Attribute | Value |
-|---|---|
-| File owner | CoE Core + SRE Lead + DevOps |
-| Review cadence | Quarterly -- or when Grafana configuration changes |
-| Last reviewed | 2025-01 |
-| Next review due | 2025-04 |
-| Approvers | CoE Lead, SRE Lead, DevOps Lead |
-| Change process | PR to ai-engineering-common, 2 CoE approvals required |
+
+| Attribute       | Value                                                 |
+| --------------- | ----------------------------------------------------- |
+| File owner      | CoE Core + SRE Lead + DevOps                          |
+| Review cadence  | Quarterly -- or when Grafana configuration changes    |
+| Last reviewed   | 2026-04                                               |
+| Next review due | 2026-04                                               |
+| Approvers       | CoE Lead, SRE Lead, DevOps Lead                       |
+| Change process  | PR to ai-engineering-common, 2 CoE approvals required |
+
+

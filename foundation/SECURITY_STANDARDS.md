@@ -619,8 +619,8 @@ block the generation. The flag must be visible to the Tech Lead reviewer.
 | --------------- | ------------------------------------------------------------------ |
 | File owner      | Security Lead + CoE Core                                           |
 | Review cadence  | Quarterly, or immediately following any security incident          |
-| Last reviewed   | 2025-01                                                            |
-| Next review due | 2025-04                                                            |
+| Last reviewed   | 2026-04                                                            |
+| Next review due | 2026-05                                                            |
 | Approvers       | Security Lead, CoE Lead, Tech Lead representative                  |
 | Change process  | PR to ai-engineering-commons, Security Lead approval required      |
 | Standards basis | OWASP Top 10 2021, OWASP ASVS Level 2, Telia Group Security Policy |

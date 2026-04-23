@@ -925,8 +925,8 @@ When a new tool is needed that is not in this manifest:
 | --------------- | ---------------------------------------------------------------------------- |
 | File owner      | CoE Core + DevOps                                                            |
 | Review cadence  | Quarterly -- or when a new tool integration is added                         |
-| Last reviewed   | 2025-01                                                                      |
-| Next review due | 2025-04                                                                      |
+| Last reviewed   | 2026-04                                                                      |
+| Next review due | 2026-04                                                                      |
 | Approvers       | CoE Lead, DevOps Lead, Security Lead                                         |
 | Change process  | PR to ai-engineering-common, 2 CoE approvals + Security Lead for write tools |
 

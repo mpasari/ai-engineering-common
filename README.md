@@ -15,7 +15,7 @@ teams. Single source of truth for AI-assisted engineering across the org.
 Install via npm (GitHub Packages):
 
 ```
-npm install @YOUR_ORG/ai-engineering-commons
+npm install @telia-company/ai-engineering-commons
 npx aec init
 ```
 

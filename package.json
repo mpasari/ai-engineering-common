@@ -15,7 +15,7 @@
     "coe/",
     "templates/",
     "scripts/",
-    "CHANGELOG.md"
+    "playbooks/","CHANGELOG.md"
   ],
   "scripts": {
     "lint": "node scripts/lint.js",
@@ -30,4 +30,5 @@
     "access": "restricted"
   }
 }
+
 

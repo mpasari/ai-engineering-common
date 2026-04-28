@@ -3,21 +3,24 @@
 // @telia-company/ai-engineering-common
 // Commands: init | update | list | check | version
 //
-// Enhancements over v1:
-//   - CLAUDE.md now includes agent skill files relevant to the current project
-//   - aec list  -- shows all available agents, commands, and guide files
-//   - aec check -- validates .ai/project/ files are filled in (not just stubs)
-//   - BOM stripping on all reads
-//   - Writes files using Buffer.from(..., 'utf8') -- no BOM on output
-//   - Cleaner console output with section headers
+// copilot-instructions.md now includes:
+//   - AGENT.md (who Copilot is)
+//   - HITL_PROTOCOL.md (gate system)
+//   - CODING_STANDARDS.md (patterns)
+//   - COPILOT_COMMANDS.md (all commands engineers can type)
+//   - Project-layer files (architecture, modules, integrations, data model)
+//   - Core agent skill files (so WRITE_SPEC etc. execute correctly)
+//
+// CLAUDE.md includes everything above + more agent skill files
+// .cursorrules includes coding standards only
 
 'use strict';
 
-const fs      = require('fs');
-const path    = require('path');
-const cmd     = process.argv[2];
-const args    = process.argv.slice(3);
-const PKG     = require('../package.json');
+const fs   = require('fs');
+const path = require('path');
+const cmd  = process.argv[2];
+const args = process.argv.slice(3);
+const PKG  = require('../package.json');
 
 const CWD     = process.cwd();
 const AI_DIR  = path.join(CWD, '.ai');
@@ -32,188 +35,204 @@ function stripBom(str) {
   return str ? str.replace(/^\uFEFF/, '') : str;
 }
 
-function readFile(filePath) {
-  if (!fs.existsSync(filePath)) return null;
-  return stripBom(fs.readFileSync(filePath, 'utf8'));
+function readFile(fp) {
+  if (!fs.existsSync(fp)) return null;
+  return stripBom(fs.readFileSync(fp, 'utf8'));
 }
 
-function writeFile(filePath, content) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, Buffer.from((content || '').replace(/^\uFEFF/g, ''), 'utf8'));
+function writeFile(fp, content) {
+  fs.mkdirSync(path.dirname(fp), { recursive: true });
+  fs.writeFileSync(fp, Buffer.from((content || '').replace(/^\uFEFF/g, ''), 'utf8'));
 }
 
-function readCommons(rel) {
-  return readFile(path.join(PKG_DIR, rel));
-}
-
-function readProject(rel) {
-  return readFile(path.join(PROJECT, rel));
-}
+function readCommons(rel) { return readFile(path.join(PKG_DIR, rel)); }
+function readProject(rel) { return readFile(path.join(PROJECT, rel)); }
 
 function join(...parts) {
   return parts.filter(Boolean).join('\n\n---\n\n');
 }
 
-function log(msg) {
-  process.stdout.write('  ' + msg + '\n');
-}
-
-function header(msg) {
-  process.stdout.write('\n  ' + msg + '\n  ' + '-'.repeat(msg.length) + '\n');
-}
+function log(msg)    { process.stdout.write('  ' + msg + '\n'); }
+function header(msg) { process.stdout.write('\n  ' + msg + '\n  ' + '-'.repeat(msg.length) + '\n'); }
 
 // ---------------------------------------------------------------------------
-// Read MODULE_REGISTRY.md to identify which agents are relevant
+// Agent selection based on project-layer file content
 // ---------------------------------------------------------------------------
 
-function getRelevantAgents() {
-  const registry = readProject('MODULE_REGISTRY.md') || '';
-  const agentDir = path.join(PKG_DIR, 'agents');
-
-  if (!fs.existsSync(agentDir)) return [];
-
-  // Always include these core agents in CLAUDE.md regardless of project
-  const coreAgents = [
+function getCoreAgents() {
+  // These 8 agents are always included in copilot-instructions.md
+  // They cover the most common daily commands
+  return [
     'ORCHESTRATOR_AGENT.md',
     'SPEC_WRITER_AGENT.md',
+    'STORY_DRAFTER_AGENT.md',
     'CODE_GEN_AGENT.md',
     'PEER_REVIEW_AGENT.md',
     'SECURITY_REVIEW_AGENT.md',
-    'SECRETS_SCAN_AGENT.md',
-    'STORY_DRAFTER_AGENT.md',
     'BUG_TRIAGE_AGENT.md',
+    'FEATURE_VALIDATION_AGENT.md',
   ];
+}
 
-  // Conditionally include based on project-layer file content
-  const conditionalAgents = [];
+function getConditionalAgents() {
+  const agents     = [];
+  const registry   = readProject('MODULE_REGISTRY.md')   || '';
+  const kafka      = readProject('KAFKA_TOPICS.md')       || '';
+  const dataModel  = readProject('DATA_MODEL.md')         || '';
+  const techDebt   = readProject('TECH_DEBT_REGISTRY.md') || '';
+  const sre        = readProject('SRE_SERVICE_CONFIG.md') || '';
+  const integMap   = readProject('INTEGRATION_MAP.md')    || '';
 
-  const kafkaTopics = readProject('KAFKA_TOPICS.md') || '';
-  const hasKafka = kafkaTopics.length > 100 &&
-    !kafkaTopics.includes('Not applicable') &&
-    kafkaTopics.includes('topic');
+  const hasKafka       = kafka.length > 100 && !kafka.includes('Not applicable') && kafka.includes('topic');
+  const hasDatabase    = dataModel.length > 100 && dataModel.includes('table');
+  const hasLegacy      = registry.includes('Legacy') || techDebt.includes('High');
+  const hasIntegration = integMap.length > 100;
+  const hasSre         = sre.length > 100;
 
-  if (hasKafka) {
-    conditionalAgents.push('KAFKA_SKILL_AGENT.md');
-    conditionalAgents.push('EVENT_SCHEMA_AGENT.md');
-  }
+  if (hasKafka)       agents.push('KAFKA_SKILL_AGENT.md', 'EVENT_SCHEMA_AGENT.md');
+  if (hasDatabase)    agents.push('DATA_MIGRATION_AGENT.md');
+  if (hasLegacy)      agents.push('LEGACY_EXPLAINER_AGENT.md', 'REFACTOR_AGENT.md');
+  if (hasIntegration) agents.push('DEPENDENCY_MAPPER_AGENT.md');
+  if (hasSre)         agents.push('SRE_AGENT.md', 'INCIDENT_RESPONSE_AGENT.md', 'PROBLEM_MGMT_AGENT.md');
 
-  const dataModel = readProject('DATA_MODEL.md') || '';
-  const hasDatabase = dataModel.length > 100 &&
-    dataModel.includes('table');
+  return [...new Set(agents)];
+}
 
-  if (hasDatabase) {
-    conditionalAgents.push('DATA_MIGRATION_AGENT.md');
-  }
-
-  const techDebt = readProject('TECH_DEBT_REGISTRY.md') || '';
-  const hasLegacy = registry.includes('Legacy') ||
-    techDebt.includes('High');
-
-  if (hasLegacy) {
-    conditionalAgents.push('LEGACY_EXPLAINER_AGENT.md');
-    conditionalAgents.push('REFACTOR_AGENT.md');
-  }
-
-  const integrationMap = readProject('INTEGRATION_MAP.md') || '';
-  const hasIntegrations = integrationMap.length > 100;
-
-  if (hasIntegrations) {
-    conditionalAgents.push('DEPENDENCY_MAPPER_AGENT.md');
-  }
-
-  const sreConfig = readProject('SRE_SERVICE_CONFIG.md') || '';
-  const hasSre = sreConfig.length > 100;
-
-  if (hasSre) {
-    conditionalAgents.push('SRE_AGENT.md');
-    conditionalAgents.push('OBSERVABILITY_SETUP_AGENT.md');
-  }
-
-  // Build the final agent list -- core + conditional, deduped
-  const allAgents = [...new Set([...coreAgents, ...conditionalAgents])];
-
-  // Read each agent file and return content blocks with headers
-  const blocks = [];
-  for (const agentFile of allAgents) {
-    const filePath = path.join(agentDir, agentFile);
-    const content  = readFile(filePath);
-    if (content) {
-      blocks.push(content);
-    }
-  }
-
-  return blocks;
+function readAgentFiles(agentList) {
+  const agentDir = path.join(PKG_DIR, 'agents');
+  if (!fs.existsSync(agentDir)) return [];
+  return agentList
+    .map(f => readFile(path.join(agentDir, f)))
+    .filter(Boolean);
 }
 
 // ---------------------------------------------------------------------------
 // Generate .github/copilot-instructions.md
 //
-// Contents: AGENT.md + ARCHITECTURE_OVERVIEW + MODULE_REGISTRY
-// Kept lean -- Copilot context window is smaller
+// COMPREHENSIVE -- includes commands + core agents + project context
+// This is the file that makes "WRITE_SPEC PROJ-42" work in Copilot
 // ---------------------------------------------------------------------------
 
 function generateCopilot() {
   const outPath = path.join(CWD, '.github', 'copilot-instructions.md');
-  const content = join(
+
+  const coreAgents      = getCoreAgents();
+  const conditionalAgents = getConditionalAgents();
+  const allAgents       = [...new Set([...coreAgents, ...conditionalAgents])];
+  const agentBlocks     = readAgentFiles(allAgents);
+
+  const sections = [
+    // Identity and constraints
     readCommons('foundation/AGENT.md'),
+    readCommons('foundation/HITL_PROTOCOL.md'),
+    readCommons('foundation/CODING_STANDARDS.md'),
+
+    // COMMANDS -- this is what lets engineers type 2 words instead of 200
+    readCommons('foundation/COPILOT_COMMANDS.md'),
+
+    // Project context -- specific to this codebase
     readProject('ARCHITECTURE_OVERVIEW.md'),
-    readProject('MODULE_REGISTRY.md')
-  );
-  writeFile(outPath, content);
-  log('updated  .github/copilot-instructions.md');
+    readProject('MODULE_REGISTRY.md'),
+    readProject('INTEGRATION_MAP.md'),
+    readProject('DATA_MODEL.md'),
+
+    // Agent skill files -- how each command executes
+    ...agentBlocks,
+
+    // Standards referenced by agents
+    readCommons('foundation/SECURITY_STANDARDS.md'),
+    readCommons('foundation/PERFORMANCE_GUIDELINES.md'),
+    readCommons('foundation/ACCESSIBILITY_STANDARDS.md'),
+    readCommons('foundation/API_DESIGN_STANDARDS.md'),
+    readCommons('foundation/PRIVACY_GUARDRAILS.md'),
+  ].filter(Boolean);
+
+  writeFile(outPath, sections.join('\n\n---\n\n'));
+
+  log('updated  .github/copilot-instructions.md (' +
+    sections.length + ' sections, ' +
+    agentBlocks.length + ' agent skill files, commands included)');
 }
 
 // ---------------------------------------------------------------------------
 // Generate CLAUDE.md
 //
-// Contents: AGENT.md + project-layer files + relevant agent skill files
-// More comprehensive -- Claude Code has a larger context window
+// Everything copilot-instructions.md has, plus more agent skill files
 // ---------------------------------------------------------------------------
 
 function generateClaude() {
   const outPath = path.join(CWD, 'CLAUDE.md');
 
-  // Foundation and project context
-  const foundationBlocks = [
+  const coreAgents        = getCoreAgents();
+  const conditionalAgents = getConditionalAgents();
+
+  // Claude gets additional agents that are too large for copilot-instructions
+  const extendedAgents = [
+    'ESTIMATION_AGENT.md',
+    'PLANNING_AGENT.md',
+    'AC_EXECUTOR_AGENT.md',
+    'TEST_GEN_AGENT.md',
+    'ACCESSIBILITY_AGENT.md',
+    'PERFORMANCE_AGENT.md',
+    'DOCUMENTATION_AGENT.md',
+    'ARCH_DOC_AGENT.md',
+    'ONBOARDING_AGENT.md',
+    'RELEASE_AGENT.md',
+    'PIPELINE_AGENT.md',
+  ];
+
+  const allAgents   = [...new Set([...coreAgents, ...conditionalAgents, ...extendedAgents])];
+  const agentBlocks = readAgentFiles(allAgents);
+
+  const sections = [
     readCommons('foundation/AGENT.md'),
     readCommons('foundation/HITL_PROTOCOL.md'),
     readCommons('foundation/CODING_STANDARDS.md'),
+    readCommons('foundation/COPILOT_COMMANDS.md'),
     readProject('ARCHITECTURE_OVERVIEW.md'),
     readProject('MODULE_REGISTRY.md'),
     readProject('INTEGRATION_MAP.md'),
     readProject('DATA_MODEL.md'),
+    readProject('KAFKA_TOPICS.md'),
+    readProject('TECH_DEBT_REGISTRY.md'),
+    readCommons('foundation/SECURITY_STANDARDS.md'),
+    readCommons('foundation/PERFORMANCE_GUIDELINES.md'),
+    readCommons('foundation/ACCESSIBILITY_STANDARDS.md'),
+    readCommons('foundation/API_DESIGN_STANDARDS.md'),
+    readCommons('foundation/PRIVACY_GUARDRAILS.md'),
+    readCommons('foundation/DESIGN_SYSTEM.md'),
+    readCommons('sdlc/engineering/BACKEND_PATTERNS.md'),
+    readCommons('sdlc/engineering/FRONTEND_PATTERNS.md'),
+    readCommons('sdlc/spec/TECHNICAL_SPEC_TEMPLATE.md'),
+    readCommons('sdlc/qa/TEST_STRATEGY.md'),
+    ...agentBlocks,
   ].filter(Boolean);
 
-  // Relevant agent skill files (based on project-layer file content)
-  const agentBlocks = getRelevantAgents();
+  writeFile(outPath, sections.join('\n\n---\n\n'));
 
-  // Combine everything
-  const allBlocks  = [...foundationBlocks, ...agentBlocks];
-  const content    = allBlocks.join('\n\n---\n\n');
-
-  writeFile(outPath, content);
-  log('updated  CLAUDE.md (' + allBlocks.length + ' sections, ' +
-    agentBlocks.length + ' agent skill files included)');
+  log('updated  CLAUDE.md (' +
+    sections.length + ' sections, ' +
+    agentBlocks.length + ' agent skill files)');
 }
 
 // ---------------------------------------------------------------------------
 // Generate .cursorrules
-//
-// Contents: CODING_STANDARDS + project overrides
 // ---------------------------------------------------------------------------
 
 function generateCursor() {
   const outPath = path.join(CWD, '.cursorrules');
   const content = join(
     readCommons('foundation/CODING_STANDARDS.md'),
-    readProject('OVERRIDES/CODING_STANDARDS.md')
+    readCommons('foundation/COPILOT_COMMANDS.md'),
+    readProject('ARCHITECTURE_OVERVIEW.md'),
+    readProject('MODULE_REGISTRY.md')
   );
   writeFile(outPath, content || '');
   log('updated  .cursorrules');
 }
 
 // ---------------------------------------------------------------------------
-// Write COMMONS_VERSION.md to .ai/project/
+// Write COMMONS_VERSION.md
 // ---------------------------------------------------------------------------
 
 function writeVersion() {
@@ -223,7 +242,7 @@ function writeVersion() {
     '# Commons version\n' +
     'Package: @telia-company/ai-engineering-common\n' +
     'Version: ' + PKG.version + '\n' +
-    'Installed: ' + new Date().toISOString().split('T')[0] + '\n'
+    'Updated: ' + new Date().toISOString().split('T')[0] + '\n'
   );
 }
 
@@ -236,7 +255,6 @@ if (cmd === 'init') {
 
   fs.mkdirSync(PROJECT, { recursive: true });
 
-  // Copy template files that do not already exist
   const tmplDir = path.join(PKG_DIR, 'templates', 'project-layer');
   if (fs.existsSync(tmplDir)) {
     const files   = fs.readdirSync(tmplDir).filter(f => f.endsWith('.md'));
@@ -244,17 +262,34 @@ if (cmd === 'init') {
     for (const f of files) {
       const dest = path.join(PROJECT, f);
       if (!fs.existsSync(dest)) {
-        const src = path.join(tmplDir, f);
-        writeFile(dest, readFile(src) || '');
+        writeFile(dest, readFile(path.join(tmplDir, f)) || '');
         log('created  .ai/project/' + f);
         created++;
       } else {
         log('exists   .ai/project/' + f + '  (skipped)');
       }
     }
-    if (created === 0) {
-      log('All project-layer files already exist. Run: npx aec update');
+    if (created === 0) log('All project-layer files exist. Run: npx aec update');
+  }
+
+  // Copy native Copilot prompt files to .github/prompts/
+  const promptSrc = path.join(PKG_DIR, 'prompts');
+  if (fs.existsSync(promptSrc)) {
+    const promptDest = path.join(CWD, '.github', 'prompts');
+    fs.mkdirSync(promptDest, { recursive: true });
+    const prompts = fs.readdirSync(promptSrc).filter(f => f.endsWith('.prompt.md'));
+    let copied = 0;
+    for (const f of prompts) {
+      const dest = path.join(promptDest, f);
+      if (!fs.existsSync(dest)) {
+        writeFile(dest, readFile(path.join(promptSrc, f)) || '');
+        log('created  .github/prompts/' + f);
+        copied++;
+      } else {
+        log('exists   .github/prompts/' + f + '  (skipped)');
+      }
     }
+    if (copied > 0) log('');
   }
 
   writeVersion();
@@ -270,7 +305,7 @@ if (cmd === 'init') {
   process.stdout.write('    2. Fill in .ai/project/MODULE_REGISTRY.md\n');
   process.stdout.write('    3. Fill in .ai/project/INTEGRATION_MAP.md\n');
   process.stdout.write('    4. Run: npx aec update\n');
-  process.stdout.write('    5. Commit all generated files\n\n');
+  process.stdout.write('    5. Open Copilot Chat and type: DRAFT_BRIEF\n\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -278,7 +313,25 @@ if (cmd === 'init') {
 // ---------------------------------------------------------------------------
 
 else if (cmd === 'update') {
-  header('aec -- regenerating tool configs');
+  header('aec -- regenerating tool configs and prompts');
+
+  // Sync any new prompt files from the commons
+  const promptSrc  = path.join(PKG_DIR, 'prompts');
+  const promptDest = path.join(CWD, '.github', 'prompts');
+  if (fs.existsSync(promptSrc)) {
+    fs.mkdirSync(promptDest, { recursive: true });
+    const prompts = fs.readdirSync(promptSrc).filter(f => f.endsWith('.prompt.md'));
+    let added = 0;
+    for (const f of prompts) {
+      const dest = path.join(promptDest, f);
+      if (!fs.existsSync(dest)) {
+        writeFile(dest, readFile(path.join(promptSrc, f)) || '');
+        log('added    .github/prompts/' + f);
+        added++;
+      }
+    }
+    if (added > 0) log('');
+  }
 
   writeVersion();
   generateCopilot();
@@ -286,6 +339,7 @@ else if (cmd === 'update') {
   generateCursor();
 
   process.stdout.write('\n  Done. Commit the updated files:\n');
+  process.stdout.write('    .github/prompts/     (any new prompt files)\n');
   process.stdout.write('    .github/copilot-instructions.md\n');
   process.stdout.write('    CLAUDE.md\n');
   process.stdout.write('    .cursorrules\n\n');
@@ -297,7 +351,6 @@ else if (cmd === 'update') {
 
 else if (cmd === 'list') {
   const scope = args[0] || 'all';
-
   header('aec -- commons file listing');
 
   function listDir(dirPath, label) {
@@ -305,30 +358,26 @@ else if (cmd === 'list') {
     const files = fs.readdirSync(dirPath)
       .filter(f => f.endsWith('.md') && f !== '.gitkeep')
       .sort();
-    if (files.length === 0) return;
-    process.stdout.write('\n  ' + label + ' (' + files.length + ' files)\n');
-    for (const f of files) {
-      process.stdout.write('    ' + f + '\n');
-    }
+    if (!files.length) return;
+    process.stdout.write('\n  ' + label + ' (' + files.length + ')\n');
+    files.forEach(f => process.stdout.write('    ' + f + '\n'));
   }
 
-  if (scope === 'all' || scope === 'foundation') {
-    listDir(path.join(PKG_DIR, 'foundation'), 'Foundation files');
-  }
-  if (scope === 'all' || scope === 'agents') {
-    listDir(path.join(PKG_DIR, 'agents'), 'Agent skill files');
-  }
   if (scope === 'all' || scope === 'commands') {
-    listDir(path.join(PKG_DIR, 'commands'), 'Command files');
+    process.stdout.write('\n  Commands (type these in Copilot Agent mode)\n');
+    const cmdFile = readCommons('foundation/COPILOT_COMMANDS.md') || '';
+    const commands = cmdFile.match(/^#### ([A-Z_]+)/gm) || [];
+    commands.forEach(c => process.stdout.write('    ' + c.replace('#### ', '') + '\n'));
   }
+  if (scope === 'all' || scope === 'agents')      listDir(path.join(PKG_DIR, 'agents'),      'Agent skill files');
+  if (scope === 'all' || scope === 'foundation')  listDir(path.join(PKG_DIR, 'foundation'),  'Foundation files');
+  if (scope === 'all' || scope === 'playbooks')   listDir(path.join(PKG_DIR, 'playbooks'),   'Playbooks');
   if (scope === 'all' || scope === 'sdlc') {
-    const sdlcStages = ['planning', 'spec', 'engineering', 'qa', 'release', 'ops'];
-    for (const stage of sdlcStages) {
-      listDir(path.join(PKG_DIR, 'sdlc', stage), 'SDLC / ' + stage);
-    }
+    ['planning','spec','engineering','qa','release','ops'].forEach(s =>
+      listDir(path.join(PKG_DIR, 'sdlc', s), 'SDLC / ' + s));
   }
 
-  process.stdout.write('\n  Usage: npx aec list [foundation|agents|commands|sdlc]\n\n');
+  process.stdout.write('\n  Usage: npx aec list [commands|agents|foundation|playbooks|sdlc]\n\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -338,7 +387,7 @@ else if (cmd === 'list') {
 else if (cmd === 'check') {
   header('aec -- project-layer file validation');
 
-  const requiredFiles = [
+  const required = [
     'ARCHITECTURE_OVERVIEW.md',
     'MODULE_REGISTRY.md',
     'INTEGRATION_MAP.md',
@@ -348,78 +397,49 @@ else if (cmd === 'check') {
     'SRE_SERVICE_CONFIG.md',
   ];
 
-  // Placeholder markers that indicate a file has not been filled in
-  const placeholderPatterns = [
-    '[placeholder]',
-    '[module-name]',
-    '[team-name]',
-    '# TODO',
-    '{{INSTALL_DATE}}',
-    '[Not yet created]',
+  const placeholders = [
+    '[placeholder]', '[module-name]', '[team-name]', '# TODO',
+    '{{INSTALL_DATE}}', '[Not yet created]',
   ];
 
-  let issues  = 0;
-  let missing = 0;
-
+  let issues = 0;
   process.stdout.write('\n');
 
-  for (const file of requiredFiles) {
-    const filePath = path.join(PROJECT, file);
-
-    if (!fs.existsSync(filePath)) {
+  for (const file of required) {
+    const fp = path.join(PROJECT, file);
+    if (!fs.existsSync(fp)) {
       process.stdout.write('  MISSING  ' + file + '\n');
-      missing++;
       issues++;
       continue;
     }
+    const content   = readFile(fp) || '';
+    const found     = placeholders.filter(p => content.includes(p));
+    const lineCount = content.split('\n').length;
 
-    const content    = readFile(filePath) || '';
-    const foundPH    = placeholderPatterns.filter(p => content.includes(p));
-    const lineCount  = content.split('\n').length;
-
-    if (lineCount < 10) {
-      process.stdout.write('  EMPTY    ' + file + '  (' + lineCount + ' lines -- needs content)\n');
-      issues++;
-    } else if (foundPH.length > 0) {
-      process.stdout.write('  STUB     ' + file + '  (contains placeholder: ' + foundPH[0] + ')\n');
-      issues++;
-    } else {
-      process.stdout.write('  OK       ' + file + '\n');
-    }
-  }
-
-  // Check for COMMONS_VERSION.md
-  const versionFile = path.join(PROJECT, 'COMMONS_VERSION.md');
-  if (!fs.existsSync(versionFile)) {
-    process.stdout.write('  MISSING  COMMONS_VERSION.md  (run: npx aec update)\n');
-    issues++;
+    if (lineCount < 10)       { process.stdout.write('  EMPTY    ' + file + '\n'); issues++; }
+    else if (found.length > 0){ process.stdout.write('  STUB     ' + file + '  (' + found[0] + ')\n'); issues++; }
+    else                       { process.stdout.write('  OK       ' + file + '\n'); }
   }
 
   process.stdout.write('\n');
-
-  if (missing > 0) {
-    process.stdout.write('  ' + missing + ' file(s) missing. Run: npx aec init\n\n');
-  } else if (issues > 0) {
-    process.stdout.write('  ' + issues + ' file(s) need attention.\n');
-    process.stdout.write('  Fill in the placeholder content in .ai/project/ files,\n');
-    process.stdout.write('  then run: npx aec update\n\n');
+  if (issues > 0) {
+    process.stdout.write('  ' + issues + ' file(s) need attention. Fill them in then run: npx aec update\n\n');
   } else {
     process.stdout.write('  All project-layer files look complete.\n');
-    process.stdout.write('  Run: npx aec update  to regenerate tool configs.\n\n');
+    process.stdout.write('  Run: npx aec update to regenerate tool configs.\n\n');
   }
 }
 
 // ---------------------------------------------------------------------------
-// aec version / -v
+// aec version
 // ---------------------------------------------------------------------------
 
 else if (cmd === 'version' || cmd === '-v' || cmd === '--version') {
-  process.stdout.write('  @telia-company/ai-engineering-common v' + PKG.version + '\n');
-  process.stdout.write('  Node ' + process.version + '\n\n');
+  process.stdout.write('  @telia-company/ai-engineering-common v' + PKG.version + '\n\n');
 }
 
 // ---------------------------------------------------------------------------
-// No command / help
+// Help
 // ---------------------------------------------------------------------------
 
 else {
@@ -427,13 +447,14 @@ else {
   process.stdout.write('  aec v' + PKG.version + ' -- AI Engineering Common CLI\n\n');
   process.stdout.write('  Commands:\n');
   process.stdout.write('    aec init              Bootstrap .ai/ folder in a new project\n');
-  process.stdout.write('    aec update            Regenerate tool config files\n');
-  process.stdout.write('    aec list [scope]      List commons files (foundation|agents|commands|sdlc)\n');
+  process.stdout.write('    aec update            Regenerate copilot-instructions.md, CLAUDE.md, .cursorrules\n');
+  process.stdout.write('    aec list [scope]      List files (commands|agents|foundation|playbooks|sdlc)\n');
   process.stdout.write('    aec check             Validate .ai/project/ files are filled in\n');
   process.stdout.write('    aec version           Show installed version\n\n');
-  process.stdout.write('  Typical workflow:\n');
-  process.stdout.write('    1. npx aec init       (first time only)\n');
-  process.stdout.write('    2. Fill in .ai/project/ files\n');
-  process.stdout.write('    3. npx aec update     (after editing project files)\n');
-  process.stdout.write('    4. npx aec check      (verify files are complete)\n\n');
+  process.stdout.write('  After init and filling in .ai/project/ files:\n');
+  process.stdout.write('    npx aec update\n');
+  process.stdout.write('    Then in Copilot Agent mode: DRAFT_BRIEF\n\n');
 }
+
+// Note: prompts are not appended here -- the file already handles them
+// via the init command's template copying logic below

@@ -2,7 +2,7 @@
 # AI Engineering Commons -- Coding Standards for All Code Generation
 # Version: 1.0.0
 # Status: Active
-# Last updated: 2025-01
+# Last updated: 2026-04
 # Owner: CoE Core + Tech Lead representatives
 
 ---

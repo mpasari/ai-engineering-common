@@ -2,7 +2,7 @@
 # Foundation -- Telia design system standards for AI-generated UI code
 # Version: 1.0.0
 # Status: Active
-# Last updated: 2025-01
+# Last updated: 2026-04
 # Owner: CoE Core + UX Lead
 #
 # This file is read by:

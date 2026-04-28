@@ -2,7 +2,7 @@
 # Architecture -- Architecture Decision Record template
 # Version: 1.0.0
 # Status: Active
-# Last updated: 2025-01
+# Last updated: 2026-04
 # Owner: CoE Core
 #
 # This file is read by:

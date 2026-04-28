@@ -2,7 +2,7 @@
 # SDLC -- Ops Stage -- SRE Alert Suppression Rules
 # Version: 1.0.0
 # Status: Active
-# Last updated: 2025-01
+# Last updated: 2026-04
 # Owner: CoE Core + SRE Lead
 #
 # This file is read by:

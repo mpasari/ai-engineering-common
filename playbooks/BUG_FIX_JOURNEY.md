@@ -2,7 +2,7 @@
 # Playbooks -- End-to-end journey: triaging and fixing a bug
 # Version: 1.0.0
 # Status: Active
-# Last updated: 2025-01
+# Last updated: 2026-04
 # Owner: CoE Core
 
 ---

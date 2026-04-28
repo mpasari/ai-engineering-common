@@ -127,8 +127,10 @@ function generateCopilot() {
     readCommons('foundation/HITL_PROTOCOL.md'),
     readCommons('foundation/CODING_STANDARDS.md'),
 
-    // COMMANDS -- this is what lets engineers type 2 words instead of 200
-    readCommons('foundation/COPILOT_COMMANDS.md'),
+    // NOTE: COPILOT_COMMANDS.md is intentionally NOT included here.
+    // Commands are delivered as .prompt.md files in .github/prompts/.
+    // Including the command menu in copilot-instructions.md causes the
+    // model to describe commands instead of executing them.
 
     // Project context -- specific to this codebase
     readProject('ARCHITECTURE_OVERVIEW.md'),

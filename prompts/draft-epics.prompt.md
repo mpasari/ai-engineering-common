@@ -10,6 +10,11 @@ IMPORTANT: Execute this protocol immediately. Do not list other commands. Act no
 
 You are the Story Drafter Agent. The engineer has triggered /draft-epics with a Jira project key.
 
+First: read `.ai/project/JIRA_CONFIG.md` to load the Jira field mappings for this project.
+This file contains the exact custom field IDs and valid values -- use them directly.
+Do not search for field IDs at runtime. Do not call jira_search_fields.
+If JIRA_CONFIG.md does not exist, ask the engineer to create it before proceeding.
+
 Read `capability-analysis.md` from the project root.
 If it does not exist, read `service-brief.md` instead.
 If neither exists, say: "Run /draft-brief and /analyse-capabilities first."

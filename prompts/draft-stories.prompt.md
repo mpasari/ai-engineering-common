@@ -10,6 +10,10 @@ IMPORTANT: Execute this protocol immediately. Do not list other commands. Act no
 
 You are the Story Drafter Agent. The engineer has triggered /draft-stories with a Jira epic key.
 
+First: read `.ai/project/JIRA_CONFIG.md` to load the Jira field mappings.
+Use the field IDs and default values from this file directly.
+Do not search for field IDs at runtime.
+
 Read the epic from Jira.
 Read project context from `.ai/project/` files for constraints and module context.
 Read `capability-analysis.md` for sequencing context.

@@ -76,9 +76,15 @@ Sprint target: TBD
 
 ## Step 5 -- Update epics.md journey state
 
-Read `epics.md`. Find the Journey state table. Mark step 4 as done by
-changing the empty cell to `x` for the /draft-stories row.
-Update the "Next step" line to: `/write-spec [first-story-key]`
+Read `epics.md`. Make two updates:
+
+1. In the Epics table, find the row for this epic and update
+   the "Stories created" column to "Yes" and add the story keys:
+   e.g. "Yes -- SPOCKT-24425, 24426, 24427, 24428, 24429"
+
+2. In the Journey state table, mark step 4 as done.
+   Update the "Next step" line to: `/write-spec [first-story-key]`
+
 Save the updated `epics.md`.
 
 ## Step 6 -- Tell the engineer

@@ -606,3 +606,55 @@ Valid Development Team values:
 | Owner | CoE Core -- E&C AI Team |
 | Version | 1.2.0 -- updated from live testing 2026-04-29 |
 | Next review | After first champion cohort completes tutorial |
+
+---
+
+## Appendix D -- Complete journey reference (from live testing 2026-04-29)
+
+This appendix documents the exact end-to-end journey completed in live
+testing. Use it as the reference for what a successful run looks like.
+
+### Commands run and outputs
+
+| # | Command | Output | Notes |
+|---|---|---|---|
+| 1 | /draft-brief | service-brief.md | Auto-written when edit tool ON |
+| 2 | /analyse-capabilities | capability-analysis.md | Auto-written |
+| 3 | /draft-epics SPOCKT | epics.md + SPOCKT-24417 to 24424 | 8 epics in Jira |
+| 4 | /draft-stories SPOCKT-24417 | stories-SPOCKT-24417.md + SPOCKT-24425 to 24429 | 5 stories with ACs |
+| 5 | /write-spec SPOCKT-24425 | ECAI Confluence page + Jira link | Gate C01 approved |
+| 6 | /generate-code SPOCKT-24425 | 6 files on branch feature/SPOCKT-24425-flyway-baseline | pom.xml, application.yml, V1__init.sql, PartyManagementApplication.java, FlywayBaselineMigrationIT.java |
+| 7 | /review-pr 1 | Review report: 0 BLOCKs, 2 WARNs | Gate D01 approved |
+| 8 | /validate-story SPOCKT-24425 | AC-1 PASS, AC-2 PASS, AC-3 SKIP | Story → In Review pending DBA |
+
+### Review results for PR #1
+
+```
+Security (S01-S20):    0 BLOCKs, 2 WARNs
+Secrets scan:          0 BLOCKs, 0 WARNs
+Performance (P01-P15): 0 BLOCKs, 0 WARNs
+Coding standards:      0 BLOCKs, 1 WARN
+Accessibility:         N/A
+```
+
+WARNs acknowledged:
+- S02/S12: Hardcoded Testcontainer password -- test profile only, acceptable
+- S13: Statement usage in tests -- minor style, follow-up story
+
+### Continuing the journey
+
+After SPOCKT-24425 transitions to Done:
+
+```
+/validate-story SPOCKT-24426    Individual party table
+/validate-story SPOCKT-24427    Organisation party table (parallel)
+/validate-story SPOCKT-24428    National identity columns
+/validate-story SPOCKT-24429    Contact point table
+```
+
+Each story follows: /write-spec → /generate-code → /review-pr → /validate-story
+
+After all stories in SPOCKT-24417 are Done:
+```
+/draft-stories SPOCKT-24418     TMF632 Party API epic
+```

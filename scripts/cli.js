@@ -7,7 +7,6 @@
 //   - AGENT.md (who Copilot is)
 //   - HITL_PROTOCOL.md (gate system)
 //   - CODING_STANDARDS.md (patterns)
-//   - COPILOT_COMMANDS.md (all commands engineers can type)
 //   - Project-layer files (architecture, modules, integrations, data model)
 //   - Core agent skill files (so WRITE_SPEC etc. execute correctly)
 //
@@ -127,7 +126,6 @@ function generateCopilot() {
     readCommons('foundation/HITL_PROTOCOL.md'),
     readCommons('foundation/CODING_STANDARDS.md'),
 
-    // NOTE: COPILOT_COMMANDS.md is intentionally NOT included here.
     // Commands are delivered as .prompt.md files in .github/prompts/.
     // Including the command menu in copilot-instructions.md causes the
     // model to describe commands instead of executing them.
@@ -190,7 +188,6 @@ function generateClaude() {
     readCommons('foundation/AGENT.md'),
     readCommons('foundation/HITL_PROTOCOL.md'),
     readCommons('foundation/CODING_STANDARDS.md'),
-    readCommons('foundation/COPILOT_COMMANDS.md'),
     readProject('ARCHITECTURE_OVERVIEW.md'),
     readProject('MODULE_REGISTRY.md'),
     readProject('INTEGRATION_MAP.md'),
@@ -225,7 +222,6 @@ function generateCursor() {
   const outPath = path.join(CWD, '.cursorrules');
   const content = join(
     readCommons('foundation/CODING_STANDARDS.md'),
-    readCommons('foundation/COPILOT_COMMANDS.md'),
     readProject('ARCHITECTURE_OVERVIEW.md'),
     readProject('MODULE_REGISTRY.md')
   );
@@ -367,7 +363,6 @@ else if (cmd === 'list') {
 
   if (scope === 'all' || scope === 'commands') {
     process.stdout.write('\n  Commands (type these in Copilot Agent mode)\n');
-    const cmdFile = readCommons('foundation/COPILOT_COMMANDS.md') || '';
     const commands = cmdFile.match(/^#### ([A-Z_]+)/gm) || [];
     commands.forEach(c => process.stdout.write('    ' + c.replace('#### ', '') + '\n'));
   }

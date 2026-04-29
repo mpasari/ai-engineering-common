@@ -593,3 +593,65 @@ With file-write restricted, the flow for each step becomes:
 
 This adds about 2 minutes per step. The content quality is identical --
 only the file creation is manual.
+
+---
+
+## Appendix B -- VS Code configuration for file writing
+
+For Copilot Agent mode to write files directly to your project,
+three things must be configured. Verify all three before starting
+the tutorial.
+
+### B.1 User Settings JSON (Ctrl+Shift+P → Open User Settings JSON)
+
+Add these two lines inside the root JSON object:
+
+```json
+"github.copilot.chat.agent.fileEditing": true,
+"github.copilot.chat.agent.runTasks": true
+```
+
+These settings allow Copilot Agent to create and edit files in your
+workspace and run terminal tasks (tests, builds etc.).
+
+### B.2 Workspace trust
+
+The demo project folder must be trusted:
+
+```
+Ctrl+Shift+P → Workspaces: Manage Workspace Trust
+```
+
+Verify the demo project path appears in bold under
+"Trusted Folders & Workspaces". If it does not appear,
+click "Add Folder" and add the demo project root.
+
+### B.3 Copilot Chat version
+
+Version 0.45.1 or later is required for reliable agent file writing.
+
+```
+Ctrl+Shift+X → search "GitHub Copilot Chat" → check Version field
+```
+
+If older than 0.45.1 -- click the update button.
+
+### B.4 Verify all three are correct
+
+After confirming all three, close VS Code completely and reopen
+the demo project. This ensures the settings are fully applied
+before starting the tutorial.
+
+### B.5 If file writing still fails after all three are set
+
+Some GitHub Copilot Enterprise organisation policies restrict
+agent file editing regardless of user settings. If you see:
+
+> "I don't have a file-write tool available in this session"
+
+Contact your GitHub Enterprise admin and ask them to check:
+```
+Organisation Settings > Copilot > Policies > Agent capabilities
+```
+
+In the meantime, use the manual save workflow from Appendix A.

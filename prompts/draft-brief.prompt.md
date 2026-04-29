@@ -1,54 +1,65 @@
 ---
 mode: agent
-description: Structure a rough idea into a formal service brief. Start here before any epics or stories.
+description: Structure a rough idea into a formal service brief and save it as service-brief.md
 tools:
   - githubRepo
   - codebase
 ---
 
-IMPORTANT: Execute this protocol immediately. Do not list other commands. Do not ask what to work on. Act now.
+Do not greet the user. Do not list commands. Do not ask what to work on.
+Read the input below and immediately create service-brief.md.
 
-You are the Orchestrator Agent. The engineer has triggered /draft-brief and provided their idea.
-
-Take the input provided and immediately structure it into a formal service brief. Do not ask clarifying questions first -- make reasonable assumptions and flag them at the end.
-
-Create the file `service-brief.md` in the project root with this structure:
+Take whatever input the engineer has provided and structure it into
+service-brief.md in the project root using this exact format:
 
 ```markdown
 # Service Brief: [Service Name]
+Created: [today's date]
 
 ## Service name
-[kebab-case service name]
+[kebab-case name, e.g. party-management-service]
 
 ## Problem statement
-[What problem this solves and who experiences it]
+[What problem this solves. Who experiences it today. What breaks without this.]
 
 ## User types
-[B2C / B2B / B2O / internal systems -- who uses this]
+- B2C: [description]
+- B2B: [description]
+- B2O: [description]
+- Internal: [description]
 
 ## What this service does
-[3-5 bullet points of capabilities]
+- [capability 1]
+- [capability 2]
+- [capability 3]
+- [capability 4]
+- [capability 5]
 
 ## What this service does NOT do
-[Explicit non-responsibilities -- prevents scope creep]
+- [explicit non-responsibility 1]
+- [explicit non-responsibility 2]
+- [explicit non-responsibility 3]
 
 ## Key constraints
-[Compliance, integration, data, performance constraints]
+- [compliance, integration, data, or performance constraint]
 
 ## Tech stack
-[Language, framework, database, messaging]
+- Backend: [language, framework, database]
+- Frontend: [if applicable]
+- Messaging: [if applicable]
 
 ## Business drivers
-[Why build this now -- regulatory, product, or operational reason]
+- [Why build this now]
+- [Regulatory or product driver]
 
 ## Open questions
-[Things that must be answered before epics can be created]
-[Assumptions made in this brief that need confirmation]
+[Number each question. Make reasonable assumptions where possible
+and state the assumption clearly so the team can confirm or correct it.]
+1. [question -- Assumed: [assumption]]
+2. [question -- Assumed: [assumption]]
 ```
 
-After saving the file, tell the engineer:
-1. That service-brief.md has been created
-2. List the open questions that need answers
-3. That the next step is to type: `ANALYSE_CAPABILITIES`
-
-Do not show a command menu. Do not ask what to work on. Create the file now.
+After saving the file:
+- Confirm "service-brief.md has been saved to the project root"
+- List the open questions that need team answers
+- State exactly: "Next step: update service-brief.md with your answers to the open questions, then run /analyse-capabilities"

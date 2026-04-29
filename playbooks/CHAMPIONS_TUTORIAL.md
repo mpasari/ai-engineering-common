@@ -32,17 +32,29 @@ rough idea to Jira epics and stories with full acceptance criteria.
     Check: node --version in terminal
 ```
 
-### 1.2 VS Code settings (required for file writing)
+### 1.2 VS Code settings (required for file writing and persistent tools)
 
 Open VS Code User Settings JSON (`Ctrl+Shift+P` → Open User Settings JSON)
-and verify these two lines exist:
+and verify these lines exist:
 
 ```json
 "github.copilot.chat.agent.fileEditing": true,
-"github.copilot.chat.agent.runTasks": true
+"github.copilot.chat.agent.runTasks": true,
+"github.copilot.chat.agent.defaultTools": [
+    "edit",
+    "execute",
+    "read",
+    "search",
+    "confluence-mcp",
+    "jira-mcp",
+    "io.github.github/github-mcp-server"
+]
 ```
 
-If they are missing -- add them and restart VS Code.
+**Why `defaultTools` matters:** Without this setting, every new Copilot
+Chat session resets all tools to unselected. You would have to manually
+toggle edit, execute, jira-mcp, and confluence-mcp ON at the start of
+every session. With this setting, they are always active automatically.
 
 ### 1.3 Workspace trust
 
@@ -76,9 +88,20 @@ code .
 ```
 1. Open Copilot Chat: Ctrl+Alt+I
 2. Switch to Agent mode
-3. Click tools icon (two wrenches) -- verify jira-mcp is toggled ON
-4. Type: @jira-mcp get my issues
-5. Expected: your Jira issues appear
+3. Click tools icon (two wrenches)
+4. Verify these are toggled ON:
+   ✓ edit      (Edit files in your workspace -- CRITICAL)
+   ✓ execute   (Execute code and applications)
+   ✓ read      (Read files in your workspace)
+   ✓ search    (Search files in your workspace)
+   ✓ confluence-mcp
+   ✓ jira-mcp
+   
+   If edit is OFF -- Copilot cannot write files.
+   Toggle it ON before running any command.
+
+5. Type: @jira-mcp get my issues
+6. Expected: your Jira issues appear
 ```
 
 ### 1.7 Verify Confluence MCP
@@ -465,8 +488,9 @@ Update `epics.md` Journey state after each step.
 
 | Problem | Fix |
 |---|---|
+| Copilot cannot write files | Click tools icon -- toggle ON the "edit" tool |
 | Capabilities menu appears | Type: "Execute the command I just triggered. Create the file now." |
-| File not saved | Create manually, paste content, save, commit immediately |
+| File not saved | Check edit tool is ON. If still failing -- create manually, paste, commit |
 | Context window above 50% | Start a new Copilot Chat session (+ button) |
 | Copilot cannot find service-brief.md | Commit the file first -- Copilot reads git index only |
 | Jira field error on creation | Check .ai/project/JIRA_CONFIG.md has correct field IDs |
@@ -527,8 +551,21 @@ Three settings required for Copilot to write files automatically:
 
 ```json
 "github.copilot.chat.agent.fileEditing": true,
-"github.copilot.chat.agent.runTasks": true
+"github.copilot.chat.agent.runTasks": true,
+"github.copilot.chat.agent.defaultTools": [
+    "edit",
+    "execute",
+    "read",
+    "search",
+    "confluence-mcp",
+    "jira-mcp",
+    "io.github.github/github-mcp-server"
+]
 ```
+
+Without `defaultTools`, every new session resets all tools to unselected.
+This is the most common cause of Copilot failing to write files or
+call Jira/Confluence after working correctly in a previous session.
 
 ### B.2 Workspace trust
 

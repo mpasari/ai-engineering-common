@@ -527,3 +527,69 @@ Or raise a GitHub issue: telia-company/ai-engineering-common/issues
 | Owner | CoE Core -- E&C AI Team |
 | Version | 1.1.0 -- updated from live testing 2026-04-29 |
 | Next review | After first champion cohort completes tutorial |
+
+---
+
+## Appendix A -- If Copilot cannot write files
+
+Some GitHub Copilot Enterprise configurations restrict agents from
+writing files directly. If you see the message:
+
+> "I don't have a file-write tool available in this session"
+
+This means your organisation's Copilot policy restricts file editing
+in Agent mode. The commands still work -- Copilot generates the correct
+content -- but you must save the files manually.
+
+### How to save manually
+
+When Copilot produces file content in the chat:
+
+1. In VS Code Explorer, right-click the project root
+2. Select "New File"
+3. Type the filename (e.g. `service-brief.md`)
+4. Open the file
+5. Copy the content block from the Copilot chat
+6. Paste into the file
+7. Save: Ctrl+S
+8. Commit immediately:
+
+```powershell
+git add [filename]
+git commit -m "docs: [description]"
+git push origin main
+```
+
+### Why committing immediately matters
+
+Copilot reads your project files via the git index. Files that exist
+on disk but are not committed are invisible to Copilot's search.
+Always commit new files immediately so the next command can find them.
+
+### Asking your GitHub admin to enable file writing
+
+If you want Copilot to write files automatically, ask your GitHub
+Enterprise admin to check:
+
+```
+Organisation Settings > Copilot > Policies > Agent file editing
+```
+
+This is a per-organisation setting. If enabled, Copilot will write
+files directly without manual copy-paste.
+
+### The manual save workflow
+
+With file-write restricted, the flow for each step becomes:
+
+```
+1. Run /draft-brief [idea]
+2. Copilot generates content in chat
+3. You create the file manually and paste the content
+4. Commit the file
+5. Run /analyse-capabilities
+6. Repeat
+```
+
+This adds about 2 minutes per step. The content quality is identical --
+only the file creation is manual.

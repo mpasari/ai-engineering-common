@@ -35,28 +35,54 @@ Wait for explicit approval: "Yes, create these" or "APPROVED".
 
 On approval: create each epic in Jira one by one.
 
-After all epics are created, save `epics.md` to the project root:
+After all epics are created, save `epics.md` to the project root.
+The file MUST include all four sections below -- do not omit any:
 
 ```markdown
 # Epic register: [Service Name]
 Created: [today's date]
 Jira project: [project key]
 
+## Epics
+
 | Epic key | Title | Business outcome | Status |
 |---|---|---|---|
-| [key] | [title] | [one sentence] | Backlog |
+| [key] | [title] | [one sentence] | To Do |
 
 ## Delivery sequence
-[Copy the sequence rationale from capability-analysis.md]
+1. **[key]** -- [title] *(no dependencies)*
+2. **[key]** -- [title] *(depends on 1)*
+[continue for all epics]
+
+> [Any critical sequencing notes -- e.g. audit before consent]
 
 ## Notes from team review
-[Leave blank -- fill in after sprint planning]
+*(Leave blank -- update after architect and DM review)*
+
+---
+
+## Journey state
+
+| Step | Command | Output | Done |
+|---|---|---|---|
+| 1 | /draft-brief | service-brief.md | x |
+| 2 | /analyse-capabilities | capability-analysis.md | x |
+| 3 | /draft-epics [key] | epics.md + Jira epics | x |
+| 4 | /draft-stories [first-epic-key] | stories-[key].md | |
+| 5 | /write-spec [story-key] | Confluence spec page | |
+| 6 | /generate-code [story-key] | PR opened | |
+| 7 | /review-pr [pr-number] | PR reviewed | |
+| 8 | /validate-story [story-key] | Story -> Done | |
+
+## Next step
+/draft-stories [first-epic-key]
 ```
 
 Tell the engineer:
 - `epics.md` saved to project root
-- Commit it: `git add epics.md && git commit -m "docs: add epic register"`
-- To decompose the first epic into stories: `/draft-stories [first-epic-key]`
+- Commit it: `git add epics.md && git commit -m "docs: add epic register with journey state"`
+- The Journey state table shows exactly where we are -- update it after each step
+- To decompose the first epic: `/draft-stories [first-epic-key]`
 - Only decompose the epic you are working on next -- never all epics upfront
 
 Do not show a command menu. Show the epics for approval, then create them.

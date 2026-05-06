@@ -334,6 +334,38 @@ For each high-priority module:
 /explain-module [module-name] DEEP
 ```
 
+After each DEEP analysis completes, save the output to a file:
+
+```
+Save the DEEP analysis you just produced to
+.ai/project/deep/[module-name]-DEEP.md in the project root.
+```
+
+Then commit:
+
+```powershell
+git add .ai\project\deepgit commit -m "docs: DEEP analysis for [module-name]"
+```
+
+This preserves the analysis for future sessions and team members.
+Future Copilot sessions can read these files instead of re-running
+the full DEEP analysis (which takes several minutes per module).
+
+**What to look for in DEEP output:**
+
+```
+[ ] Silent exception handling in Kafka consumers (no DLQ = messages dropped)
+[ ] @Qualifier or @ConditionalOnProperty beans used without null-guards
+[ ] Duplicated business rules in multiple classes or modules
+[ ] File locks / PID files without operational runbook
+[ ] Shared database tables with no documented ownership
+[ ] Scheduled or async threads with no external alerting on failure
+[ ] Startup failures on missing directories or files
+[ ] Two independent implementations of the same business rule
+```
+
+Each finding becomes a tech debt story in the demo Jira project.
+
 From BDL -- run in this order:
 ```
 /explain-module document-messaging DEEP    ← core module, all Kafka topics
@@ -437,6 +469,90 @@ Run 3: Management / DM (show output and speed)
 
 For each repeat run the .ai/project/ files are already committed
 to the demo branch. Skip Phase 1 and start from Phase 3 or 4.
+
+---
+
+## Phase 3 key findings -- DEEP analysis lessons from BDL live run
+
+### DEEP analysis surfaces what code review cannot
+
+The /explain-module DEEP command on document-messaging (249 classes,
+609 commits) produced findings that would take a senior engineer weeks
+to piece together manually:
+
+**What DEEP finds that normal code review misses:**
+- Silent failure modes (exceptions caught and swallowed)
+- Latent bugs in conditional code paths (NPEs on unconfigured beans)
+- Duplicated business rules across modules
+- Operational runbook gaps (crash recovery, lock files)
+- Shared database table ownership boundaries
+- Thread model risks (busy-wait loops, no load testing)
+
+### No DLQ is the most dangerous pattern in event-driven systems
+
+From BDL: BaseConsumer.consume() catches all exceptions and returns.
+A mapping error permanently drops the invoice delivery message with
+no alert, no retry, no dead-letter record.
+
+During peak billing cycles this means failed deliveries are invisible.
+The team may not know invoices were never sent until customers complain.
+
+**Add to Phase 3 checklist:** Always check Kafka consumer error handling.
+If no DLQ strategy exists -- create a High severity tech debt story
+before any consumer changes are made.
+
+### Latent bugs in optional Spring beans
+
+From BDL: @Qualifier("alpha") and @Qualifier("c2b") beans are optional.
+If not configured, a null dereference occurs at runtime when a specific
+customer routing path is hit. The bug is invisible in normal operation.
+
+**DEEP analysis identifies these by tracing @ConditionalOnProperty and
+@Qualifier injection points.** Look for: optional beans used without
+null-guards in task classes.
+
+### Duplicated business rules indicate future divergence
+
+From BDL: Phone number normalisation (+46 stripping) implemented
+independently in Ace.sendCallback() and BrmEventMapper.
+Two implementations of the same rule will eventually diverge --
+one will be updated, the other forgotten.
+
+**DEEP identifies this by finding semantically similar code blocks
+in different modules.** Each duplication should become a tech debt story.
+
+### Single instance lock files need operational runbooks
+
+From BDL: document-messaging acquires a FileLock at startup.
+If the service crashes, the lock file remains and the service
+refuses to restart until manually deleted. No runbook documents this.
+
+**Add to Phase 3 checklist:** For any service using file locks,
+PID files, or singleton patterns -- verify an operational runbook
+exists for crash recovery before declaring the module safe to modify.
+
+### Shared database tables require coordinated release process
+
+From BDL: 8 DAOs in document-messaging write to NetBill DB tables
+also written by bdlx-api and netbilldb-service. Schema changes break
+all three services simultaneously.
+
+**Add to INTEGRATION_MAP.md:** Document shared database tables as
+integrations, not just HTTP/Kafka connections. Each shared table
+needs an ownership record (which service owns the schema).
+
+### DEEP analysis output should be committed to the repo
+
+The DEEP analysis for each critical module should be saved as a
+markdown file in `.ai/project/deep/` so future sessions and team
+members can reference it without re-running the analysis.
+
+```
+.ai/project/deep/
+  document-messaging-DEEP.md
+  kivra-enrichment-DEEP.md
+  [other critical modules]
+```
 
 ---
 
@@ -570,7 +686,30 @@ Playbook improvements made after this run:
   - Git commands must run in terminal (not Copilot) added
   - Jira MCP self-correction behaviour documented
 
-Team reaction: TBD (pending full Phase 3 and team review session)
+Phase 3 DEEP analysis results:
+  document-messaging (249 classes, 609 commits):
+    - SPOCKT-24431 (TD-012): No DLQ -- messages silently dropped [CRITICAL]
+    - SPOCKT-24432 (TD-013): Phone normalisation duplicated [ARCH]
+    - SPOCKT-24433 (TD-014): Latent NPE alpha/c2b channels [BUG]
+  kivra-enrichment (CLI batch, Java 21, no Spring):
+    - SPOCKT-24434 (TD-012): KivraSsns crashes billing run on corrupt file [CRITICAL]
+    - SPOCKT-24435 (TD-013): Silent partial output with exit code 0 [HIGH]
+    - SPOCKT-24436 (TD-014): getCustID()==SSN coupling undocumented [ARCH]
+
+Total demo Jira stories created: 7
+  SPOCKT-24430 to SPOCKT-24436
+  Labels: bdl-brownfield, ai-engineering-commons-test
+
+Agent self-correction observed:
+  - TD numbering clash: agent detected TD-009/011 already claimed,
+    automatically used TD-012/014 instead. No engineer intervention needed.
+
+explain-module.prompt.md updated during run:
+  - DEEP mode now autonomous: creates Jira stories without asking
+  - Saves output to .ai/project/deep/ automatically
+  - States next step without waiting for input
+
+Team reaction: TBD (pending team review session)
 ```
 
 ---
@@ -612,7 +751,7 @@ This surfaces database-embedded business logic that is otherwise invisible.
 ## Version and review
 
 | File owner | CoE Core |
-| Version | 1.2.0 |
+| Version | 1.4.0 |
 | Created | 2026-04-30 |
-| Updated | 2026-05-06 -- updated from live BDL run Phase 1 and Phase 2 |
+| Updated | 2026-05-06 -- updated from live BDL run Phase 1, 2, and 3 complete |
 | Review cadence | After each brownfield run |

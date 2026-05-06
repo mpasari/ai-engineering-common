@@ -62,7 +62,7 @@ The quality of AI assistance a team gets is directly proportional to how well th
 The files in `.ai/project/` are the foundation of everything. If `MODULE_REGISTRY.md` lists a module that no longer exists, or `INTEGRATION_MAP.md` is missing a new integration, every agent command produces worse output. Check these files whenever the codebase changes significantly.
 
 ```
-Monthly check:
+Weekly check:
   [ ] MODULE_REGISTRY.md reflects current modules (no missing, no ghost modules)
   [ ] INTEGRATION_MAP.md lists all active integrations
   [ ] TECH_DEBT_REGISTRY.md has current High severity items
@@ -82,10 +82,10 @@ git push
 
 This ensures everyone on the team gets new and improved prompt files automatically.
 
-### Monthly
+### Weekly
 
 **Attend the champion sync** (or send a delegate).
-The monthly sync is 45 minutes. See [The monthly champion sync](#monthly-sync) for what to expect.
+The weekly sync is 60 minutes. See [The weekly champion sync](#weekly-sync) for what to expect.
 
 **Send a one-paragraph feedback summary to the CoE.**
 What worked well this month. What was frustrating. What you wish existed. This is how the commons roadmap is built.
@@ -166,19 +166,19 @@ The champion network is Telia's most active engineering community. Champions acr
 
 ---
 
-## The monthly champion sync {#monthly-sync}
+## The monthly champion sync {#weekly-sync}
 
-**Cadence:** First Monday of each month, 45 minutes.
+**Cadence:** Every thursday, 60 minutes.
 **Format:** Video call — all champions invited. Minutes posted to Confluence.
 
 ### Agenda
 
 ```
-0:00 — 0:05   New releases and what changed (CoE Core)
-0:05 — 0:25   Champion feedback round (5 min per champion — see below)
-0:25 — 0:35   Open issues and blockers
-0:35 — 0:42   Roadmap preview — what is coming next quarter
-0:42 — 0:45   Actions and close
+0:00 — 0:10   New releases and what changed (CoE Core)
+0:10 — 0:30   Champion feedback round (5 min per champion — see below)
+0:30 — 0:40   Open issues and blockers
+0:40 — 0:50   Roadmap preview — what is coming next quarter
+0:50 — 0:60   Actions and close
 ```
 
 ### Your 5 minutes
@@ -212,7 +212,6 @@ For any problem with a command, a prompt file, or an agent:
 4. Label: bug (for broken behaviour) or enhancement (for missing capability)
 ```
 
-For urgent issues (blocking a sprint): bring to the CoE Lead directly via Slack.
 
 ### Contributing a fix or new capability
 
@@ -273,7 +272,7 @@ Approximately 2-3 hours per week when the commons is being actively adopted by t
 
 **Q: My team uses Cursor, not Copilot. Does the commons work?**
 
-Yes. The commons generates `.cursorrules` as well as `copilot-instructions.md`. See `CURSOR_SETUP.md` in the playbooks. Note that Cursor MCP support may be restricted by company policy — check with your IT department.
+Yes. The commons generates `.cursorrules` as well as `copilot-instructions.md`. See `CURSOR_SETUP.md` in the playbooks. Note that Cursor MCP support may be restricted by company policy — check with IT department.
 
 **Q: What if my team does not want to use the commons?**
 
@@ -295,7 +294,7 @@ CoE Core members maintain the commons itself — they write and review the agent
 
 ## Your champion checklist {#checklist}
 
-Complete this before your first champions session:
+Complete this before next champions session:
 
 ### Setup
 

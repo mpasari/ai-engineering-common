@@ -1,9 +1,10 @@
 # BROWNFIELD_DISCOVERY_PLAYBOOK.md
 # Playbooks -- Onboarding an existing codebase to AI Engineering Commons
-# Version: 1.0.0
+# Version: 1.1.0
 # Status: Active
-# Last updated: 2026-04-30
+# Last updated: 2026-05-06
 # Owner: CoE Core
+# Updated from: Live run on BDL repo (Java 21, Groovy, Perl, TSQL, Shell, 6000 commits)
 
 ---
 
@@ -15,18 +16,18 @@ context to full AI-assisted delivery in 1-2 days without disrupting the
 current sprint.
 
 **Safe to repeat:** This playbook can be run multiple times on the same
-repository. Running it again refreshes the project-layer files with
-updated analysis.
+repository. Running it again refreshes the project-layer files.
+
+**Proven on:** BDL (Billing Delivery Platform) -- Java 21, Groovy,
+Spring Boot 3.5.5, Gradle, MS SQL Server, Kafka, 6000+ commits, 19 modules.
 
 ---
 
 ## Ground rules for demo and testing runs
 
-When running this as a demo or first-time test:
-
 ```
-READ from:   Your real Jira project (read-only -- we pull ticket context)
-             Your real Confluence space (read-only -- we read existing docs)
+READ from:   Your real Jira project (read-only -- pull ticket context)
+             Your real Confluence space (read-only -- read existing docs)
 
 WRITE to:    Demo Jira project: SPOCKT (team: SPOCK Common)
              Demo Confluence space: ECAI
@@ -37,23 +38,18 @@ Never:       Push generated files to the real repo during a demo run
              Write to production Confluence spaces
 ```
 
-This means the team can run the full journey safely, see real results,
-and repeat as many times as needed before committing to the real repo.
-
 ---
 
 ## Prerequisites
 
 ```
-[ ] VS Code 1.99 or later installed
+[ ] VS Code 1.99 or later
 [ ] GitHub Copilot Chat v0.45.1 or later
 [ ] Node.js 18 or later: node --version
 [ ] Git installed and authenticated
 [ ] Access to the brownfield repository (clone or local copy)
-[ ] Jira MCP connected and working:
-    In Copilot Chat Agent mode: @jira-mcp get my issues
-[ ] Confluence MCP connected and working:
-    In Copilot Chat Agent mode: @confluence-mcp search for pages in space ECAI
+[ ] Jira MCP working: @jira-mcp get my issues
+[ ] Confluence MCP working: @confluence-mcp search for pages in space ECAI
 ```
 
 **VS Code settings (must be set before starting):**
@@ -72,480 +68,409 @@ Open VS Code User Settings JSON (Ctrl+Shift+P → Open User Settings JSON):
 
 ---
 
-## Phase 1 -- Install and scan (Day 1 morning, ~2 hours)
+## Phase 1 -- Install and scan (Day 1 morning, ~1 hour)
 
 ### Step 1.1 -- Clone the repository (demo mode)
 
-For demo and testing runs, work in a local clone. Do NOT push back to origin.
-
 ```powershell
-# Clone the repository you want to analyse
 git clone https://github.com/telia-company/[your-repo].git
 cd [your-repo]
 
-# Create a local demo branch -- all work stays here
+# Create a local demo branch -- all work stays here, never push
 git checkout -b ai-commons-demo
 ```
 
 ### Step 1.2 -- Install the commons
 
+**Important:** Corporate networks block registry.npmjs.org.
+Use npm link from the local commons clone instead:
+
 ```powershell
-# Install the commons package
-npm install @telia-company/ai-engineering-common
+# First time only -- link the commons
+cd "C:\Users\[user]\...\ai-engineering-common"
+npm link
 
-# Initialise -- creates .ai/project/ stubs and .github/prompts/ commands
+# In the brownfield repo
+cd [your-repo]
+npm link @telia-company/ai-engineering-common
+
+# Verify
+npx aec version
+```
+
+Then initialise:
+
+```powershell
 npx aec init
-
-# Verify the stubs were created
-Get-ChildItem ".ai\project\"
 ```
 
-You should see these stub files created:
+Expected output:
 ```
-ARCHITECTURE_OVERVIEW.md  (empty -- to be filled by scan)
-MODULE_REGISTRY.md        (empty -- to be filled by scan)
-INTEGRATION_MAP.md        (empty -- to be filled by scan)
-DATA_MODEL.md             (empty -- to be filled by scan)
-KAFKA_TOPICS.md           (empty -- to be filled by scan)
-TECH_DEBT_REGISTRY.md     (empty -- to be filled by scan)
-FEATURE_ENV_CONFIG.md     (empty -- fill manually after scan)
-SRE_SERVICE_CONFIG.md     (empty -- fill manually after scan)
-JIRA_CONFIG.md            (empty -- fill manually)
+created  .ai/project/ARCHITECTURE_OVERVIEW.md
+created  .ai/project/DATA_MODEL.md
+created  .ai/project/FEATURE_ENV_CONFIG.md
+created  .ai/project/INTEGRATION_MAP.md
+created  .ai/project/JIRA_CONFIG.md
+created  .ai/project/KAFKA_TOPICS.md
+created  .ai/project/MODULE_REGISTRY.md
+created  .ai/project/SRE_SERVICE_CONFIG.md
+created  .ai/project/TECH_DEBT_REGISTRY.md
+created  .github/prompts/  [22 prompt files]
+updated  .github/copilot-instructions.md
+updated  CLAUDE.md
+updated  .cursorrules
 ```
 
-### Step 1.3 -- Configure JIRA_CONFIG.md for demo
+### Step 1.3 -- Shrink copilot-instructions.md
 
-Open `.ai/project/JIRA_CONFIG.md` and fill in the demo project details:
+The generated copilot-instructions.md contains 28+ sections which
+exhausts the context window before you type anything.
+Replace it with a lean version:
 
-```markdown
-## Jira project configuration
+```powershell
+Set-Content -Path ".github\copilot-instructions.md" -Encoding UTF8 -Value @"
+# AI Engineering Commons -- Copilot Instructions
+# Project: [repo-name] brownfield discovery (demo run)
+# Stack: [detected stack]
 
+## Rules
+- Execute commands immediately when triggered via prompt files
+- Save all outputs to files in the project root
+- Read .ai/project/JIRA_CONFIG.md before any Jira operation
+- Write to demo project SPOCKT and ECAI space only -- never real systems
+- Never hard delete -- soft delete only
+- Never store credentials in code
+
+## MCP tools available
+- jira-mcp: demo writes to SPOCKT, reads from real project
+- confluence-mcp: demo writes to ECAI space
+"@
+
+(Get-Content ".github\copilot-instructions.md").Count
+# Should show: 17
+```
+
+### Step 1.4 -- Configure JIRA_CONFIG.md
+
+```powershell
+Set-Content -Path ".ai\project\JIRA_CONFIG.md" -Encoding UTF8 -Value @"
+## DEMO (write target -- safe for testing)
 Project key:        SPOCKT
-Project name:       SPOCK T (demo project)
 Jira base URL:      https://jira.atlassian.teliacompany.net
 Board type:         Scrum
 Default issue type: Story
 
-Note: This is the DEMO project used for safe testing.
-Real project key: [YOUR-REAL-PROJECT-KEY] (read-only during demo)
-
-## Custom field mappings
-
-Development Team field:
-  Field ID:         customfield_12725
+Custom field mappings:
+  Development Team: customfield_12725
   Value for demos:  SPOCK Common
 
-## Real project reference (read-only)
+## REAL PROJECT (read-only -- never write here)
+Real Jira project:     [REAL-PROJECT-KEY]
+Real board type:       [Scrum or Kanban]
+Real Confluence space: [REAL-SPACE-KEY]
 
-Real Jira project:     [YOUR-REAL-PROJECT-KEY]
-Real Confluence space: [YOUR-REAL-SPACE-KEY]
-These are used for READING context only.
-All writes go to SPOCKT and ECAI during demo runs.
+IMPORTANT: All Jira writes go to SPOCKT only.
+           All Confluence writes go to ECAI only.
+           Real project and space are READ ONLY.
+
+## Repo-specific notes
+Stack: [detected stack]
+Board type: [Kanban/Scrum -- important for Kanban: no sprint concept]
+"@
 ```
 
-### Step 1.4 -- Open in VS Code and run the brownfield scan
+**Note on Kanban boards:** If the real project uses Kanban (not Scrum),
+there are no sprints. Use JQL status filters instead of sprint queries:
+`@jira-mcp search issues in project [KEY] where status = "In Progress"`
 
-```powershell
-code .
-```
+### Step 1.5 -- Run the brownfield scan
 
-Open Copilot Chat (Ctrl+Alt+I) → Agent mode. Verify all tools are ON.
+Open VS Code: `code .`
 
-Then type:
+Open Copilot Chat (Ctrl+Alt+I) → Agent mode → verify all tools ON.
 
 ```
 /run-brownfield-scan
 ```
 
-**What happens during the 7-phase scan:**
+**The 7 phases and what to expect:**
 
 ```
 Phase 1: Language and framework detection
-  Reads: pom.xml, package.json, *.csproj, Dockerfile
-  Outputs: stack, framework versions, CI tool
+  Reads: pom.xml / build.gradle / package.json / Dockerfile
+  Expected output: primary stack, framework version, CI tools
+  From BDL: Java 21, Spring Boot 3.5.5, Gradle, SonarQube
 
-Phase 2: Repository structure mapping
-  Reads: all source directories
-  Maps: modules to Active / Legacy / Deprecated status
-         (Active = committed to in last 90 days)
-         (Legacy = no commits in 90+ days)
-  Writes: .ai/project/MODULE_REGISTRY.md
+Phase 2: Module mapping
+  Reads: directory structure, git commit history per directory
+  Classifies: Active (commits in 90 days) / Legacy / Deprecated
+  Expected output: module list with commit counts
+  From BDL: 19 modules -- document-messaging 609 commits (core module)
+  Note: Commit count is a reliable risk proxy -- highest commits = most risk
 
 Phase 3: Integration discovery
-  Reads: HTTP client configuration, Kafka config, external URLs
-  Writes: .ai/project/INTEGRATION_MAP.md
-          .ai/project/KAFKA_TOPICS.md
+  Reads: HTTP clients, Kafka config, external URLs, SMTP/SMPP config
+  Expected output: all inbound and outbound integrations
+  From BDL: Kafka (5 topics), Kivra, TeliaSign, SMTP, SMPP, SQL Server
 
 Phase 4: Data model and PII discovery
-  Reads: entity classes, database schemas, migration files
-  Flags: columns likely to contain personal data
-  Writes: .ai/project/DATA_MODEL.md
+  Reads: JPA entities, database schemas, migration files, flat files
+  Flags: PII fields AND flat files containing personal data
+  From BDL: 6 JPA entities, SSNs in kivra-ssns.txt (GDPR action required)
+  IMPORTANT: Flat files with PII (e.g. *ssn*.txt) are a critical GDPR finding
 
 Phase 5: Technical debt identification
-  Reads: file sizes, TODO/FIXME comments, dependency versions
-  Identifies: large files, outdated dependencies, commented-out code
-  Writes: .ai/project/TECH_DEBT_REGISTRY.md
+  Reads: dependency versions, TODO/FIXME comments, file sizes
+  From BDL: 11 items -- jTDS 2014 driver, springdoc incompatibility, missing GDPR policy
 
-Phase 6: Credential and secrets scan
+Phase 6: Credential scan
   Reads: all source files
-  Applies: credential pattern matching
-  STOPS COMPLETELY if any credential is found
-  (Credential must be rotated before Phase 7 can continue)
+  Note: NOT all credential findings cause a stop.
+        Severity determines response:
+        -- Production credential: STOP, rotate immediately, do not continue
+        -- Test credential with private IP: Medium severity, log as tech debt, continue
+  From BDL: sa/bdl in test file pointing to 10.14.41.160 (private dev IP)
+            Classified Medium -- logged as TD-004, scan continued
 
-Phase 7: Documentation and output
-  Writes: remaining .ai/project/ files
-  Creates: Confluence architecture overview page in ECAI space
-  Presents: Gate C01 for Tech Lead review
+Phase 7: Write output files
+  Writes: all .ai/project/ files
+  Creates: Confluence architecture page draft in ECAI
 ```
 
-**Watch the output carefully during Phase 6.** If it stops, a credential
-was found. See the troubleshooting section.
+**Timing from live run (6000-commit mixed-language repo):**
+Phase 1-7 completed in approximately 15-20 minutes end to end.
+
+### Step 1.6 -- Commit the scan results
+
+```powershell
+git add .ai\ .github\ CLAUDE.md .cursorrules
+git commit -m "chore: AI Engineering Commons brownfield scan complete
+
+[paste Phase 1-7 summary from scan output]
+Status: Phase 2 enrichment pending"
+
+# DO NOT push -- demo branch only
+```
 
 ---
 
-## Phase 2 -- Review and enrich (Day 1 afternoon, ~2 hours)
+## Phase 2 -- Verify and enrich (Day 1 afternoon, ~2 hours)
 
-The scan produces a good baseline but cannot discover everything.
-The Tech Lead reviews and corrects each file.
+### Step 2.1 -- Verify context is loaded correctly
 
-### Step 2.1 -- Review MODULE_REGISTRY.md
-
-Open `.ai/project/MODULE_REGISTRY.md` and verify:
+In Copilot Chat:
 
 ```
-[ ] All modules are listed (none missing)
-[ ] Active / Legacy / Deprecated status is correct
-[ ] Module descriptions are accurate
-[ ] No ghost modules (directories that are not really modules)
-[ ] Owner team is correct for each module
+What project is this? List all modules with their status,
+key integrations, and top 3 tech debt items.
 ```
 
-Common issues the scan gets wrong:
-- Test directories listed as modules (remove them)
-- Generated code directories listed as active modules (mark as generated)
-- Shared library directories listed incorrectly
+Expected: Copilot accurately describes the codebase.
+If it gives generic output: check that the .ai/project/ files have content.
 
-### Step 2.2 -- Review INTEGRATION_MAP.md
+### Step 2.2 -- Investigate any PII flat files found
 
-```
-[ ] All external systems are named (not just "external-api")
-[ ] DPA status for each integration (default is Unknown -- flag for Security Lead)
-[ ] Auth method for each integration
-[ ] Both inbound AND outbound integrations listed
-```
-
-For the demo: DPA status will be Unknown for all integrations initially.
-This is correct -- it becomes a follow-up action for the Security Lead.
-
-### Step 2.3 -- Review DATA_MODEL.md
+If the scan found flat files containing personal data (SSNs, emails etc.):
 
 ```
-[ ] All database tables are listed
-[ ] PII fields correctly flagged
-[ ] Retention policies (blank initially -- flag as follow-up)
-[ ] Relationships between tables noted
+Read the file [filename] found in Phase 4.
+Tell me:
+1. How many records it contains
+2. When it was last modified (git log)
+3. Which modules read this file
+4. Any documentation about where this data comes from
+```
+
+This is always the highest GDPR priority in a brownfield scan.
+
+### Step 2.3 -- Verify Legacy module classification
+
+For each module marked Legacy by the scan:
+
+```
+Show me the git log for [module-name] for the last 12 months.
+Is it truly Legacy (no commits) or does it still receive occasional changes?
+Who last committed and when?
 ```
 
 ### Step 2.4 -- Fill in FEATURE_ENV_CONFIG.md manually
 
-The scan cannot discover how to start the test environment. Fill this in:
+The scan cannot discover how to start the test environment:
 
-```markdown
-## Test environment
-
-TEST_ENV_BASE_URL=http://localhost:8080
-Health check: GET http://localhost:8080/health
-
-## How to start
-
-[paste the exact commands to start the local test environment]
-e.g.:
-  docker-compose up -d
-  Wait 30 seconds
-  curl http://localhost:8080/health
-
-## Test users
-
-[list test accounts -- never real subscriber data]
-TEST_USER_VIEWER: viewer@example.com / viewer-local-only
-TEST_USER_EDITOR: editor@example.com / editor-local-only
+```
+Read docker-compose.yml, README.md, and any setup scripts.
+Fill in .ai/project/FEATURE_ENV_CONFIG.md with:
+- How to start the local test environment
+- Health check endpoint URL
+- Test database details (no real credentials)
+- Environment variables needed
 ```
 
-### Step 2.5 -- Regenerate tool configs and verify
+### Step 2.5 -- Regenerate and commit
 
 ```powershell
 npx aec update
-```
-
-Then verify in Copilot Chat:
-
-```
-What project is this? List all modules, their status, key integrations,
-and any high-risk areas I should know about before writing code.
-```
-
-Expected: Copilot accurately describes the codebase.
-If it gives generic output: the project-layer files need more content.
-
-### Step 2.6 -- Commit the baseline (demo branch only)
-
-```powershell
-git add .ai\ .github\ CLAUDE.md .cursorrules
-git commit -m "chore: install AI Engineering Commons and baseline discovery
-
-Generated by /run-brownfield-scan on [date].
-Tech Lead review: pending.
-Status: Phase 2 enrichment in progress."
+git add .ai\ CLAUDE.md .cursorrules
+git commit -m "chore: Phase 2 enrichment complete -- .ai/project/ files verified"
 ```
 
 ---
 
-## Phase 3 -- Deep analysis of risky modules (Day 2 morning)
+## Phase 3 -- Deep analysis of high-risk modules (Day 2 morning)
 
-### Step 3.1 -- Identify high-risk modules
+### Step 3.1 -- Identify modules for DEEP analysis
 
-Open `.ai/project/MODULE_REGISTRY.md` and note all modules marked:
-- **Legacy** status
-- **High** or **Critical** risk score from the scan
+Priority order:
+1. Highest commit count (most active = most business logic)
+2. All Kafka consumer concentration (one module consuming all topics = SPoF)
+3. Any module handling PII (SSNs, customer IDs, account numbers)
+4. Any module marked Legacy with recent commits (contradiction = risk)
 
-For each high-risk module, run a deep analysis:
+### Step 3.2 -- Run DEEP analysis
+
+For each high-priority module:
 
 ```
 /explain-module [module-name] DEEP
 ```
 
-The DEEP analysis produces:
-- Full call graph from every entry point
-- Business rules and invariants the module enforces
-- Hidden coupling with other modules or shared databases
-- Refactoring prerequisites (what must change before this can be touched)
-- Specific warnings for the team
-
-**Important:** Do not skip this step. Teams consistently underestimate
-Legacy module risk. The DEEP analysis surfaces hidden dependencies that
-cause production incidents when the module is modified without understanding.
-
-### Step 3.2 -- Document findings in MODULE_REGISTRY.md
-
-After each DEEP analysis, add the key findings to MODULE_REGISTRY.md:
-
-```markdown
-| [module-name] | Legacy | High | [team] | [description]
-Known risks: [paste key findings from DEEP analysis]
-Do not modify without: [prerequisites from DEEP analysis]
+From BDL -- run in this order:
+```
+/explain-module document-messaging DEEP    ← core module, all Kafka topics
+/explain-module kivra-enrichment DEEP      ← handles Swedish SSNs
+/explain-module galaxy-data DEEP           ← Legacy, verify it is safe to ignore
 ```
 
 ### Step 3.3 -- Create tech debt stories in demo Jira
 
-For each High severity tech debt item from TECH_DEBT_REGISTRY.md:
+For each High severity tech debt item:
 
 ```
-Using jira-mcp, create a tech debt story in project SPOCKT with:
-- Summary: [TECH DEBT] [module-name]: [description of debt]
-- Type: Story
-- Team: SPOCK Common
-- Label: ai-engineering-commons-test, tech-debt
-- Description: [paste the relevant TECH_DEBT_REGISTRY.md entry]
-```
-
-These stories represent the team's real debt, documented in the
-demo Jira project. They can be migrated to the real Jira project
-after the demo run is validated.
-
-### Step 3.4 -- Dependency vulnerability scan
-
-In Copilot Chat:
-
-```
-Scan the dependencies in this project for known CVEs.
-Check pom.xml (or package.json) against the OWASP vulnerability database.
-List any Critical or High severity findings with CVE IDs.
-Create Jira stories in project SPOCKT for each Critical finding.
+Using jira-mcp, create a story in project SPOCKT with:
+Summary: [TECH DEBT] [TD-NNN]: [description]
+Type: Story
+Team: SPOCK Common
+Label: ai-engineering-commons-test, tech-debt, [repo-name]
+Description: [paste from TECH_DEBT_REGISTRY.md]
 ```
 
 ---
 
-## Phase 4 -- Read from real Jira and Confluence
+## Phase 4 -- Read real Jira and Confluence context
 
-This is where the demo gets powerful -- reading real context from the
-team's existing Jira and Confluence while writing only to the demo project.
-
-### Step 4.1 -- Read existing Jira stories for context
+### Step 4.1 -- Read real Jira tickets for context
 
 ```
 @jira-mcp search issues in project [REAL-PROJECT-KEY]
-where status = "Ready" and type = "Story"
+where status = "In Progress"
+limit 5
+```
+
+For Kanban boards (no sprints):
+```
+@jira-mcp search issues in project [REAL-PROJECT-KEY]
+where status in ("In Progress", "Ready", "To Do")
+order by updated DESC
 limit 10
 ```
 
-This returns real stories from the team's backlog. The AI can read
-these for context -- understanding what the team is currently working on,
-what the ACs look like, and how stories are structured.
-
-### Step 4.2 -- Read existing Confluence documentation
+### Step 4.2 -- Read real Confluence documentation
 
 ```
 @confluence-mcp search for pages in space [REAL-SPACE-KEY]
 about [service-name] architecture
 ```
 
-If the team has architecture documentation in Confluence, Copilot reads it
-and can cross-reference it with the scan findings. Discrepancies between
-documented architecture and actual code are flagged automatically.
+Cross-reference what Confluence says vs what the scan found.
+Discrepancies are valuable -- they show where documentation has drifted
+from reality.
 
-### Step 4.3 -- Analyse a real story end-to-end (demo mode)
+### Step 4.3 -- Run a real story end-to-end (demo mode)
 
-Pick a real story from the team's backlog that is in Ready status.
+Pick a real story from the team's backlog in Ready status.
 
 ```
 @jira-mcp get issue [REAL-PROJECT-KEY-NNN]
 
-Using the story above, run the full /write-spec protocol but:
-- Write the spec to Confluence space ECAI (not the real space)
-- Create any Jira tickets in project SPOCKT (not the real project)
-- This is a demo run -- no changes to production systems
+Using the story above and the BDL codebase context, run /write-spec
+but write the spec to Confluence space ECAI (not the real space)
+and any Jira updates to project SPOCKT (not the real project).
+This is a demo run -- no changes to production systems.
 ```
 
-Copilot reads the real story, generates a real technical spec based on
-the actual codebase context, but writes everything to the demo space.
-
-The team can then compare:
-- What they would have written manually vs what the AI generated
-- What gaps the AI found (missing ACs, security considerations, GDPR flags)
-- How long the spec generation took vs their manual process
+Compare AI output vs what the team would have written manually.
 
 ---
 
-## Phase 5 -- First real story (Week 1 end)
+## Phase 5 -- First real story criteria
 
-After the demo run is validated and the team is comfortable:
+When the team is ready to use the commons on the real repo:
 
-### Step 5.1 -- Choose the right starter story
-
-Criteria for the first real AI-assisted story:
 ```
-[ ] Module is marked Active (not Legacy) in MODULE_REGISTRY.md
-[ ] Test coverage is Medium or High (from scan)
-[ ] Story is 3 points or fewer
-[ ] No cross-team dependencies
-[ ] Tech Lead understands the module well
+Good starter story criteria:
+  [ ] Module is Active (not Legacy or Deprecated)
+  [ ] Not document-messaging for the first story (too complex)
+  [ ] Test coverage is Medium or High
+  [ ] Story is 3 points or fewer
+  [ ] No cross-team Kafka dependencies
+  [ ] Tech Lead understands the module
+
+Avoid for first story:
+  [ ] document-messaging (core module, high blast radius)
+  [ ] kivra-enrichment (PII handling, GDPR risk)
+  [ ] galaxy-data (Legacy)
+  [ ] old/ (Deprecated)
+  [ ] Any TSQL/stored procedure changes
 ```
-
-Avoid for the first story:
-- Any Legacy or Critical risk module
-- Database migrations (do these after the team is comfortable with code gen)
-- Authentication changes (high risk, gate C05 required)
-- Stories with unclear ACs
-
-### Step 5.2 -- Run the full journey on the real repo
-
-When ready to work on the real repository (not just demo mode):
-
-```powershell
-# Switch to a feature branch on the real repo
-git checkout main
-git pull
-git checkout -b feature/[JIRA-KEY]-[description]
-
-# The .ai/project/ files are already committed from Phase 1-2
-# Run the full new feature journey
-```
-
-Follow the NEW_FEATURE_JOURNEY.md playbook from this point.
 
 ---
 
 ## Repeating the demo
 
-This playbook is designed to be run multiple times:
+This playbook is designed for multiple runs:
 
 ```
 Run 1: Tech Lead + CoE champion (understand the codebase)
-Run 2: Full engineering team (see the tools in action)
-Run 3: Management / DM (show the output and speed)
+Run 2: Full engineering team (see tools in action)
+Run 3: Management / DM (show output and speed)
 ```
 
-For each repeat run:
-1. Check out a fresh clone of the `ai-commons-demo` branch
-2. The `.ai/project/` files are already committed -- skip Phase 1
-3. Start from Phase 3 (deep analysis) or Phase 4 (real story demo)
-4. Everything writes to SPOCKT and ECAI -- no production impact
+For each repeat run the .ai/project/ files are already committed
+to the demo branch. Skip Phase 1 and start from Phase 3 or 4.
 
 ---
 
-## Tracking two repos simultaneously
-
-When running this playbook on two different repos at the same time:
+## Observations log -- BDL repo (first run 2026-05-06)
 
 ```
-Repo A: [repo-name-A]
-  Demo branch: ai-commons-demo-A
-  Demo Jira label: repo-a-brownfield
-  Confluence parent: [ECAI page for Repo A]
+Date of run:          2026-05-06
+Phase 1 duration:     ~5 minutes
+Full scan duration:   ~15-20 minutes
+Modules found:        19
+Active modules:       17
+Legacy modules:       1 (galaxy-data)
+Deprecated modules:   1 (old/)
+Credentials found:    Yes -- test credential (Medium, did not stop scan)
+Tech debt items:      11 (3 High, 4 Medium, 4 Low)
 
-Repo B: [repo-name-B]
-  Demo branch: ai-commons-demo-B
-  Demo Jira label: repo-b-brownfield
-  Confluence parent: [ECAI page for Repo B]
-```
+Top findings:
+  - document-messaging: 609 commits, consumes ALL 5 Kafka topics (SPoF risk)
+  - kivra-ssns.txt: Swedish SSNs in a flat file (GDPR -- no retention policy)
+  - jTDS 2014 JDBC driver: unmaintained, no TLS 1.2+ support (security risk)
+  - springdoc 1.8: incompatible with Spring Boot 3.5.5 (TD-001)
+  - Hardcoded sa/bdl credential in test file (TD-004 Medium)
 
-Use the label field in Jira to distinguish stories from each repo.
-Use separate Confluence parent pages for each repo's documentation.
+Biggest surprises:
+  - 19 modules in one repo (larger than expected for this type of service)
+  - All 5 Kafka topics consumed by a single module (concentration risk)
+  - SSNs in a flat file -- no team member mentioned this during planning
 
-Update this playbook after each run with observations:
-- What the scan found vs what was expected
-- Which modules were incorrectly classified
-- What the DEEP analysis surfaced that the team did not know
-- How long each phase took
+What the scan missed:
+  - TSQL stored procedures (need manual TSQL_INVENTORY step)
+  - Perl scripts business logic (need manual /explain-module)
+  - Shell script credential analysis (partial -- flagged one, may be more)
 
----
-
-## Brownfield discovery checklist
-
-**Phase 1 -- Install and scan:**
-```
-[ ] Repository cloned to demo branch (ai-commons-demo)
-[ ] npx aec init completed
-[ ] JIRA_CONFIG.md filled with SPOCKT details
-[ ] /run-brownfield-scan completed (all 7 phases)
-[ ] No credentials found in Phase 6 (or rotated if found)
-[ ] Gate C01 presented and reviewed by Tech Lead
-[ ] Baseline committed to demo branch
-```
-
-**Phase 2 -- Enrich:**
-```
-[ ] MODULE_REGISTRY.md verified and corrected
-[ ] INTEGRATION_MAP.md all systems named (no "unknown-api")
-[ ] DATA_MODEL.md PII fields identified
-[ ] FEATURE_ENV_CONFIG.md filled in manually
-[ ] npx aec update run and committed
-[ ] Copilot describes the codebase accurately
-```
-
-**Phase 3 -- Deep analysis:**
-```
-[ ] All Legacy and High-risk modules analysed with DEEP
-[ ] Findings documented in MODULE_REGISTRY.md
-[ ] Tech debt stories created in SPOCKT
-[ ] Dependency scan run
-```
-
-**Phase 4 -- Real story demo:**
-```
-[ ] Real Jira stories read for context
-[ ] Real Confluence docs read and cross-referenced
-[ ] One real story run through /write-spec in demo mode
-[ ] Team compares AI output vs manual process
-[ ] Observations documented
-```
-
-**Ready for real work:**
-```
-[ ] Team comfortable with the commands
-[ ] First real story selected (low-risk criteria met)
-[ ] Tech Lead has approved moving to real repo
-[ ] .ai/project/ files are accurate and up to date
+Team reaction: TBD (pending Phase 2 review session)
 ```
 
 ---
@@ -554,58 +479,40 @@ Update this playbook after each run with observations:
 
 | Problem | Cause | Fix |
 |---|---|---|
-| Phase 6 stops -- credential found | Exposed secret in source code | Rotate the credential immediately. Remove from code. Git history rewrite may be needed. Contact Security Lead. |
-| Module registry has wrong modules | Large monorepo confuses scan | Edit MODULE_REGISTRY.md manually. Remove test/ and generated/ directories. |
-| Copilot gives generic output after update | Project-layer files not detailed enough | Add more content to ARCHITECTURE_OVERVIEW.md and MODULE_REGISTRY.md descriptions. |
-| /explain-module returns little output | Module is a thin wrapper | Ask: "Where is the actual business logic for [module]?" |
-| Test environment fails to start | Missing dependency in docker-compose | Add all dependencies to docker-compose.yml and update FEATURE_ENV_CONFIG.md. |
-| Jira field error when creating stories | Wrong custom field ID | Update JIRA_CONFIG.md -- run jira-mcp search fields for SPOCKT. |
+| npm install ETIMEDOUT | Corporate network blocks npmjs.org | Use npm link from local commons clone |
+| PowerShell heredoc fails silently | URL-encoded markdown links in command | Use Set-Content with @"..."@ syntax instead |
+| Phase 6 stops completely | Production credential found | Rotate credential immediately. Contact Security Lead. Do not continue until rotated. |
+| Phase 6 finds test credential | Hardcoded in test file | Log as Medium tech debt. Continue scan. Verify it is truly a dev IP not production. |
+| Copilot gives generic output | Project-layer files not detailed enough | Check .ai/project/ files have real content from scan. Run npx aec update. |
+| Context window exhausted | copilot-instructions.md too large | Replace with lean 17-line version (Step 1.3) |
+| Kanban board -- no sprint queries work | Real project is Kanban not Scrum | Use status-based JQL: where status in ("In Progress", "Ready") |
+| Module wrongly classified as Legacy | Low commit count but still active | Manually correct MODULE_REGISTRY.md status |
+| Flat file with PII found | Personal data outside database | Highest GDPR priority -- investigate immediately (Step 2.2) |
 
 ---
 
-## Observations log
+## TSQL inventory (additional step for repos with stored procedures)
 
-Use this section to track findings as you run the playbook on real repos.
-Update after each session.
+If the scan finds TSQL files, run this additional step after Phase 2:
 
-### Repo A: [repo-name]
 ```
-Date of run:
-Phase 1 duration:
-Phase 2 duration:
-Modules found:
-Legacy modules:
-High-risk modules:
-Credentials found (yes/no):
-Tech debt items (High severity):
-Dependency CVEs found:
-Biggest surprise:
-What the scan missed:
-Team reaction:
+Read all .sql, .tsql, and stored procedure files in this repository.
+Create TSQL_INVENTORY.md in the project root with:
+- Stored procedure name
+- What it does (one sentence)
+- Input parameters
+- Whether it modifies data (SELECT vs INSERT/UPDATE/DELETE)
+- Last modified date from git log
 ```
 
-### Repo B: [repo-name]
-```
-Date of run:
-Phase 1 duration:
-Phase 2 duration:
-Modules found:
-Legacy modules:
-High-risk modules:
-Credentials found (yes/no):
-Tech debt items (High severity):
-Dependency CVEs found:
-Biggest surprise:
-What the scan missed:
-Team reaction:
-```
+This surfaces database-embedded business logic that is otherwise invisible.
 
 ---
 
 ## Version and review
 
 | File owner | CoE Core |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Created | 2026-04-30 |
-| Review cadence | After each brownfield run -- update with observations |
-| Next review | After first two real brownfield runs complete |
+| Updated | 2026-05-06 -- updated from live BDL run |
+| Review cadence | After each brownfield run |

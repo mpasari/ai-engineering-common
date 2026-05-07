@@ -556,6 +556,240 @@ members can reference it without re-running the analysis.
 
 ---
 
+## Phase 4 -- Read real Jira and Confluence (Day 2, ~1 hour)
+
+This phase connects the brownfield findings to the team's actual sprint work.
+It is the most powerful demo moment -- the AI reads a real ticket and
+cross-references it with findings from the DEEP analysis automatically.
+
+### Step 4.1 -- Read real Jira for backlog context
+
+For Kanban boards (no sprints), use status-based JQL:
+
+```
+@jira-mcp search issues in project [REAL-PROJECT-KEY]
+where status in ("In Progress", "To Do")
+order by updated DESC
+limit 5
+```
+
+Note: "Ready" may not be a valid status in all projects.
+The MCP will report invalid statuses and retry with valid ones automatically.
+
+From BDL: TDMT uses Kanban. "Ready" was invalid -- MCP retried with
+"In Progress" and "To Do". 20 matching issues returned.
+
+### Step 4.2 -- Pick a story that touches a DEEP-analysed module
+
+Choose a story that touches a module you ran DEEP on.
+This creates the most compelling demo -- the AI can cross-reference
+live findings against a real ticket.
+
+From BDL: TDMT-103 "Add MSISDN to SMS for depleted data bucket"
+touches BrmEventMapper and BrmEventConsumer -- both analysed in the
+document-messaging DEEP. This created a direct link between TD-008
+(phone normalisation duplicated) and the story being specced.
+
+### Step 4.3 -- Read the full story
+
+```
+@jira-mcp get issue [REAL-PROJECT-KEY-NNN]
+```
+
+Read the full description, acceptance criteria, linked features,
+and any attachments. The AI uses all of this in spec generation.
+
+### Step 4.4 -- Generate the spec in demo mode
+
+```
+Using the context from [REAL-PROJECT-KEY-NNN] and the DEEP analysis
+in .ai/project/deep/[module]-DEEP.md, generate a technical spec.
+
+Write the spec to Confluence space ECAI under parent page 1289964045.
+Do not update the real Jira ticket.
+Do not create tickets in the real project.
+This is demo mode -- write to ECAI and SPOCKT only.
+```
+
+**What a good spec produces automatically:**
+
+The AI cross-references the story against all brownfield findings and surfaces:
+
+1. Tech debt conflicts: which known TD items affect this story
+2. Architectural decisions required before implementation
+3. GDPR implications of the change (new PII fields, lawful basis)
+4. Encoding or locale risks (e.g. Swedish characters in SMS)
+5. Missing information the team must resolve before coding starts
+6. Gate C01 presentation for Tech Lead approval
+
+**From BDL -- TDMT-103 spec surfaced:**
+- RISK (HIGH): TD-008 -- this story would create a THIRD phone normalisation
+  implementation. Fix TD-008 in same PR recommended.
+- DECISION: [user name] placeholder not feasible without BRM schema change
+- DECISION: DbTemplate token syntax unknown -- must query DB first
+- ENCODING RISK: å ä ö are GSM-7 extended chars -- 160-char SMS becomes 153
+- Gate C01 presented automatically
+
+Confluence page created: https://itwiki.atlassian.teliacompany.net/pages/viewpage.action?pageId=1296160892
+
+### Step 4.5 -- Evidence files to show
+
+After Phase 4, these are the files to show as evidence:
+
+```
+Confluence (ECAI space):
+  SPEC: TDMT-103 -- Add MSISDN to SMS for depleted data bucket
+  URL: https://itwiki.atlassian.teliacompany.net/pages/viewpage.action?pageId=1296160892
+  Shows: Full technical spec with cross-referenced TD findings
+
+Jira (SPOCKT):
+  SPOCKT-24430 to SPOCKT-24436
+  Shows: 7 stories auto-created from brownfield findings
+
+Local files:
+  .ai/project/deep/document-messaging-DEEP.md  ← 249-class analysis
+  .ai/project/deep/kivra-enrichment-DEEP.md    ← PII/GDPR analysis
+  .ai/project/TECH_DEBT_REGISTRY.md            ← TD-001 to TD-014
+  .ai/project/MODULE_REGISTRY.md               ← 19 modules with status
+  .ai/project/INTEGRATION_MAP.md               ← all integrations with DPA status
+  .ai/project/KAFKA_TOPICS.md                  ← 5 topics with consumer details
+```
+
+---
+
+## Phase 5 -- First real story criteria (Week 1 end)
+
+After the demo run is validated, these criteria determine which story
+is safe to start with AI assistance on the real repo.
+
+### Starter story selection criteria
+
+```
+MUST be true:
+  [ ] Module is Active in MODULE_REGISTRY.md
+  [ ] Module has Medium or High test coverage (from DEEP analysis)
+  [ ] Story is 3 points or fewer
+  [ ] No cross-module Kafka dependencies
+  [ ] Tech Lead understands the module well
+
+AVOID for first story:
+  [ ] document-messaging (core module, high blast radius, no DLQ)
+  [ ] kivra-enrichment (PII handling, crash risk, no null-safety)
+  [ ] Any module marked with refactoring prerequisites in DEEP analysis
+  [ ] Database migrations (do these after team is comfortable with code gen)
+  [ ] Authentication changes (gate C05 required)
+```
+
+### What makes a good first story
+
+The ideal first story touches a leaf module (no downstream consumers),
+has clear Given/When/Then ACs already written, and does not modify
+any shared database tables.
+
+From BDL, good first story candidates:
+- A story in `api` module (Active, REST-only, limited blast radius)
+- A story in `robin-export` (SFTP writer, isolated, lower risk)
+- Any story in `libraries` (shared utils, highly testable)
+
+Avoid for first story:
+- Any story touching `document-messaging` until TD-006 (DLQ) is fixed
+- Any story touching `kivra-enrichment` until TD-012 (null-safety) is fixed
+
+### Running the first real story
+
+When the criteria are met, switch to the real repo:
+
+```powershell
+# On the real repo (not the demo branch)
+git checkout main
+git pull
+git checkout -b feature/[REAL-JIRA-KEY]-[description]
+
+# The .ai/project/ files are already there from the demo branch
+# Copy them to main before starting
+git checkout ai-commons-demo -- .ai/project/
+git add .ai/project/
+git commit -m "chore: add AI Engineering Commons project context"
+```
+
+Then follow the NEW_FEATURE_JOURNEY.md playbook.
+
+---
+
+## Complete evidence guide -- what to show at each phase
+
+This section maps each phase to the exact files and URLs to show
+as evidence during a team demo or champions presentation.
+
+### Phase 1 evidence
+```
+File: .ai/project/MODULE_REGISTRY.md
+Show: 19 modules with Active/Deprecated status and commit counts
+Say:  "This was empty 15 minutes ago. The scan filled it in automatically."
+
+File: .ai/project/TECH_DEBT_REGISTRY.md
+Show: TD-001 to TD-011, first 3 items (High severity)
+Say:  "11 tech debt items found. 3 High priority. The team knew about some,
+       not all of them."
+
+File: .ai/project/INTEGRATION_MAP.md
+Show: Kivra, TeliaSign, SMTP, SMPP, SQL Server entries
+Say:  "Every external system mapped with protocol and auth method."
+```
+
+### Phase 2 evidence
+```
+Jira: SPOCKT-24430
+Show: [GDPR] Document and enforce retention policy for kivra-ssns.txt
+Say:  "Swedish personnummer in a runtime flat file. No retention policy.
+       Found in 2 minutes of investigation. Created in Jira automatically."
+
+File: .ai/project/MODULE_REGISTRY.md
+Show: galaxy-data entry -- reclassified from Legacy to Active
+Say:  "The scan said Legacy. Git log said Active. Java 21 upgrade in 2025.
+       We corrected it."
+```
+
+### Phase 3 evidence
+```
+File: .ai/project/deep/document-messaging-DEEP.md
+Show: Risk level CRITICAL. Entry points table. Invariants section.
+Say:  "249 classes. The AI mapped every entry point, every invariant,
+       and every hidden dependency. Then created Jira stories for the risks."
+
+Jira: SPOCKT-24431
+Show: [CRITICAL] No DLQ -- silent message drop
+Say:  "Invoice delivery failures during billing cycles are completely
+       invisible. No alert fires. No engineer knows. Found by the AI."
+
+Jira: SPOCKT-24434
+Show: [CRITICAL] KivraSsns crashes billing run on corrupt SSN file
+Say:  "One corrupt file crashes the entire Kivra billing cycle with no
+       recovery. Trivial to fix. Never documented until now."
+```
+
+### Phase 4 evidence
+```
+Jira: TDMT-103 (real production ticket -- read only)
+Show: The story description -- MSISDN in SMS for depleted data bucket
+Say:  "This is a real ticket from your board. Unassigned. To Do."
+
+Confluence: ECAI space -- SPEC: TDMT-103
+URL: https://itwiki.atlassian.teliacompany.net/pages/viewpage.action?pageId=1296160892
+Show: The three decisions section and the encoding risk
+Say:  "The AI read the ticket, read the DEEP analysis, and caught that
+       this story would create a THIRD phone normalisation implementation --
+       a problem the team did not know existed. And it caught the Swedish
+       character encoding risk before any code was written."
+
+File: .ai/project/deep/document-messaging-DEEP.md
+Show: Invariant 4 -- phone normalisation section
+Say:  "This is where the connection came from. The DEEP analysis documented
+       the duplication. The spec picked it up automatically."
+```
+
+---
+
 ## Phase 2 key findings -- lessons from BDL live run
 
 ### PII flat files are runtime-only (not in git)
@@ -751,7 +985,7 @@ This surfaces database-embedded business logic that is otherwise invisible.
 ## Version and review
 
 | File owner | CoE Core |
-| Version | 1.4.0 |
+| Version | 1.5.0 |
 | Created | 2026-04-30 |
-| Updated | 2026-05-06 -- updated from live BDL run Phase 1, 2, and 3 complete |
+| Updated | 2026-05-06 -- full journey Phase 1-4 complete with evidence guide |
 | Review cadence | After each brownfield run |

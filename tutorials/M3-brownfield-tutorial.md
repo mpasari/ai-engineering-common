@@ -126,19 +126,36 @@ Everything stays local.
 Corporate network blocks the npm registry. Use npm link instead:
 
 ```powershell
-# Step 2a -- Link from your local commons clone (one-time setup)
-cd "C:\...\ai-engineering-common"
-npm link
+# Step 2a -- Navigate to the commons package folder (one level inside the repo)
+# Note: there are TWO folders with similar names. You need the INNER one
+# that contains package.json
+cd "C:\Users\tmq0697\OneDrive - Telia Company\Telia\AI\Code\ai-engineering-common\ai-engineering-common"
 
-# Step 2b -- In your repo
-cd [your-repo]
+# Verify you are in the right place -- you should see package.json listed
+dir package.json
+
+# Run npm link
+npm link
+```
+
+**What you should see after npm link:**
+```
+added 1 package, and audited 1 package in 2s
+```
+
+If you see an error like `Could not read package.json` -- you are in the wrong folder.
+Navigate one level deeper until you can see package.json with `dir package.json`.
+
+```powershell
+# Step 2b -- Go back to your team repo and link the package
+cd "C:\Projects\[your-repo]"
 npm link @telia-company/ai-engineering-common
 
-# Step 2c -- Verify
+# Step 2c -- Verify it worked
 npx aec version
 ```
 
-**What you should see:**
+**What you should see after aec version:**
 ```
 @telia-company/ai-engineering-common v1.0.0
 ```
@@ -466,6 +483,8 @@ This is what completes M3. Your findings help the whole group learn.
 | Problem | Cause | Fix |
 |---|---|---|
 | npm install ETIMEDOUT | Corporate network blocks npm | Use npm link (Step 2) |
+| "Client ID https://vscode.dev/oauth/client-metadata.json was not found" | VS Code uses Dynamic Client Registration (RFC 7591) which the Telia MCP server does not yet support | Server-side fix needed. Continue M3 Steps 1-9 without MCP. Skip Jira story creation until fixed. Escalate to Backstage platform team. |
+| "Client ID 10bda343-xxx was not found" | Stale OAuth token cached in VS Code state database | Close VS Code. Run: `Remove-Item "$env:APPDATA\Code\User\globalStorage\state.vscdb" -Force` then reopen VS Code and retry. |
 | Phase 6 stops -- credential found | Production secret in source code | Contact Security Lead. Do not continue until credential is rotated. |
 | Module wrongly classified Legacy | Low commit count heuristic | Run git log manually (Step 10) and correct MODULE_REGISTRY.md |
 | Copilot cannot find files | Files not committed | git add + git commit before next command |

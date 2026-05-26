@@ -476,6 +476,17 @@ Followed by a list of your Jira issues.
 
 ---
 
+## Known MCP connection errors and fixes
+
+| Error | Cause | Fix |
+|---|---|---|
+| "Client ID `https://vscode.dev/oauth/client-metadata.json` was not found" | VS Code is using Dynamic Client Registration (RFC 7591) which the Telia MCP server does not yet support. This is a server-side issue. | Contact the Backstage platform team. This cannot be fixed on your machine. While waiting, proceed with M2 (greenfield tutorial) which does not require MCP for the file-writing steps. |
+| "Client ID `10bda343-xxx` was not found" (UUID format) | Stale OAuth token cached in VS Code state database | Close VS Code completely. Run in PowerShell: `Remove-Item "$env:APPDATA\Code\User\globalStorage\state.vscdb" -Force` and `Remove-Item "$env:APPDATA\Code\User\globalStorage\state.vscdb.backup" -Force`. Reopen VS Code and retry. |
+| "invalid_token" in browser | Expired bearer token being reused | Same fix as above -- delete state.vscdb and retry. |
+| MCP shows as Stopped after restart | defaultTools not saving between sessions | Verify `github.copilot.chat.agent.defaultTools` is in User Settings JSON (not workspace settings). |
+
+---
+
 ## Next step
 
 You are now ready for **M2 — Greenfield Tutorial**.

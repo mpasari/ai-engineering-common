@@ -55,9 +55,28 @@ If anything goes wrong, nothing in production is affected.
 
 ---
 
-## Step 1 — Clone your repository and create a demo branch
+## Step 1 — Clone YOUR TEAM'S REAL REPOSITORY and create a demo branch
+
+**Important -- which repository to clone:**
+This is NOT the demo project (ai-engineering-commons-demo).
+You are cloning YOUR OWN TEAM'S real repository -- the codebase
+your team actually works on day to day.
+
+The purpose is to run the brownfield scan on real code so you can
+see what the AI finds in your actual codebase.
 
 **What to do:**
+
+First, find the GitHub URL of your team's repository.
+It will look something like:
+```
+https://github.com/telia-company/bdl-main
+https://github.com/telia-company/party-management-service
+https://github.com/telia-company/your-actual-service
+```
+
+Then run these commands in PowerShell, replacing `[your-repo]`
+with the actual name of your repository:
 
 ```powershell
 git clone https://github.com/telia-company/[your-repo].git
@@ -70,12 +89,16 @@ git checkout -b ai-commons-demo
 Switched to a new branch 'ai-commons-demo'
 ```
 
-**Why a separate branch:**
-All generated files (.ai/project/, .github/, CLAUDE.md) stay on this branch.
-The main/master branch of your real repository is never touched.
-You can repeat this demo as many times as you want without any impact.
+**Why `ai-commons-demo` as the branch name:**
+This creates a new branch inside your real repository called `ai-commons-demo`.
+All the generated files (.ai/project/, .github/, CLAUDE.md) will live on this
+branch only. Your main/master branch is never touched.
+
+Think of it as a safe sandbox inside your real repo -- you get real results
+from real code, but nothing goes back to the team until you decide it should.
 
 **Important:** Never run `git push origin ai-commons-demo` during a demo run.
+Everything stays local.
 
 ---
 

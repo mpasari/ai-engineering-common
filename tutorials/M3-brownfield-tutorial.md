@@ -67,7 +67,24 @@ see what the AI finds in your actual codebase.
 
 **What to do:**
 
-First, find the GitHub URL of your team's repository.
+First, decide where on your computer you want to keep this work.
+`git clone` will create a new folder automatically -- you do not need
+to create it yourself. But you should navigate to a sensible parent
+folder first.
+
+Open PowerShell (Terminal → New Terminal in VS Code) and navigate
+to where you want to work:
+
+```powershell
+# Choose a folder that makes sense for you, for example:
+cd C:\Projects
+
+# Or if Projects does not exist yet, create it first:
+mkdir C:\Projects
+cd C:\Projects
+```
+
+Then find the GitHub URL of your team's repository.
 It will look something like:
 ```
 https://github.com/telia-company/bdl-main

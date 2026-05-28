@@ -266,6 +266,46 @@ The lean 17-line version keeps the context window under 5%.
 
 ---
 
+## Step 5b — Replace CLAUDE.md with lean version
+
+**This step is mandatory. Skipping it will cause a context window error.**
+
+The generated `CLAUDE.md` contains thousands of lines which fills up the
+AI model's memory before the scan even starts. You will see this error:
+
+> "Your input exceeds the context window of this model."
+
+Replace it with a lean version now:
+
+```powershell
+Set-Content -Path "CLAUDE.md" -Encoding UTF8 -Value @"
+# AI Engineering Commons
+# Project: brownfield discovery (demo run)
+
+## Rules
+- Execute commands immediately when triggered via prompt files
+- Save all outputs to .ai/project/ files
+- Read .ai/project/JIRA_CONFIG.md before any Jira operation
+- Write to demo project SPOCKT and ECAI space only
+- Never push to origin during demo runs
+
+## MCP tools
+- jira-mcp: demo writes to SPOCKT, reads from real project
+- confluence-mcp: demo writes to ECAI space
+"@
+
+# Verify it is lean
+Write-Host "CLAUDE.md lines: $((Get-Content 'CLAUDE.md').Count)"
+# Should show: 17
+```
+
+**What you should see:** `CLAUDE.md lines: 17`
+
+If it shows a large number (500+) the file was not replaced correctly.
+Try the command again -- make sure you are in the repo root folder.
+
+---
+
 ## Step 6 — Open in VS Code and run the scan
 
 **What to do:**
@@ -483,6 +523,7 @@ This is what completes M3. Your findings help the whole group learn.
 | Problem | Cause | Fix |
 |---|---|---|
 | npm install ETIMEDOUT | Corporate network blocks npm | Use npm link (Step 2) |
+| "Your input exceeds the context window" | CLAUDE.md and copilot-instructions.md are too large (500+ lines each) | Run Step 5b -- replace both files with the lean 17-line version before opening Copilot Chat |
 | "Client ID https://vscode.dev/oauth/client-metadata.json was not found" | VS Code uses Dynamic Client Registration (RFC 7591) which the Telia MCP server does not yet support | Server-side fix needed. Continue M3 Steps 1-9 without MCP. Skip Jira story creation until fixed. Escalate to Backstage platform team. |
 | "Client ID 10bda343-xxx was not found" | Stale OAuth token cached in VS Code state database | Close VS Code. Run: `Remove-Item "$env:APPDATA\Code\User\globalStorage\state.vscdb" -Force` then reopen VS Code and retry. |
 | Phase 6 stops -- credential found | Production secret in source code | Contact Security Lead. Do not continue until credential is rotated. |

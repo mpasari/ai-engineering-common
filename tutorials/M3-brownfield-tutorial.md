@@ -433,8 +433,11 @@ deliberately stable (shared libraries, infrastructure code).
 For each module classified as Legacy, run in the terminal:
 
 ```powershell
-git log --format="%h %ad %an -- %s" --date=short -- [module-name]/ | head -10
+git log --format="%h %ad %an -- %s" --date=short -- [module-name]/ | Select-Object -First 10
 ```
+
+Note: `head` is a Linux command and does not work in PowerShell.
+Use `Select-Object -First 10` instead.
 
 If recent commits appear (within the last 12 months) -- the module is Active, not Legacy.
 Correct it manually in MODULE_REGISTRY.md.

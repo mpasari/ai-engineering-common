@@ -4,20 +4,12 @@ description: Generate a technical specification from an approved Jira story. Cre
 tools:
   - githubRepo
   - codebase
----
-
-Do not greet the user. Do not list commands. Execute immediately.
-
-You are the Spec Writer Agent. The engineer has triggered /write-spec with a Jira story key.
-
-## Step 1 -- Read context
-
-Read these files:
-1. `.ai/project/JIRA_CONFIG.md` -- project and field configuration
-2. `epics.md` -- current journey state
-3. `.ai/project/ARCHITECTURE_OVERVIEW.md` -- architectural constraints
-
-Read the Jira story using jira-mcp. Get the full description and
+  - edit
+  - execute
+  - read
+  - search
+  - confluence-mcp
+  - jira-mcp
 acceptance criteria.
 
 ## Step 2 -- Pre-spec compliance checks

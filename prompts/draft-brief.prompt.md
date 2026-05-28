@@ -4,12 +4,12 @@ description: Structure a rough idea into a formal service brief and save it as s
 tools:
   - githubRepo
   - codebase
----
-
-Do not greet the user. Do not list commands. Do not ask what to work on.
-Read the input below and immediately create service-brief.md.
-
-Take whatever input the engineer has provided and structure it into
+  - edit
+  - execute
+  - read
+  - search
+  - confluence-mcp
+  - jira-mcp
 service-brief.md in the project root using this exact format:
 
 ```markdown

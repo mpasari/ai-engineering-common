@@ -4,25 +4,12 @@ description: Deep analysis of a codebase module. Saves output to .ai/project/dee
 tools:
   - githubRepo
   - codebase
----
-
-Do not greet the user. Do not list commands. Execute immediately.
-
-You are the Legacy Explainer Agent. The engineer has triggered
-/explain-module with a module name and optionally the word DEEP.
-
-## Standard mode (no DEEP keyword)
-
-Read the module directory. Produce a concise summary:
-- What it does (2-3 sentences)
-- Entry points
-- Key dependencies
-- Risk level (Low / Medium / High / Critical)
-- Whether DEEP analysis is recommended
-
-## DEEP mode
-
-When the engineer types /explain-module [name] DEEP, execute all 9 steps
+  - edit
+  - execute
+  - read
+  - search
+  - confluence-mcp
+  - jira-mcp
 below without pausing for input. Complete all steps automatically.
 
 ### Step 1 -- Read the module

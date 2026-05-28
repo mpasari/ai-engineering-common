@@ -4,34 +4,12 @@ description: Analyse service-brief.md and produce a reasoned capability map save
 tools:
   - githubRepo
   - codebase
----
-
-Do not greet the user. Do not list commands. Do not ask what to work on.
-Read service-brief.md from the project root and immediately create capability-analysis.md.
-
-If service-brief.md does not exist, say only:
-"service-brief.md not found. Run /draft-brief first."
-
-Read service-brief.md including all answered open questions.
-Then create capability-analysis.md in the project root:
-
-```markdown
-# Capability Analysis: [Service Name]
-Created: [today's date]
-Based on: service-brief.md
-
-## Capability areas (in delivery order)
-
-### 1. [Capability name]
-- **What it is:** [one sentence]
-- **Why it is needed:** [business reason -- regulatory, integration, or product]
-- **Depends on:** [what must exist first, or "none"]
-- **Risk if delayed:** [specific consequence]
-
-[repeat for each capability]
-
-## Why this sequence
-[2-3 paragraphs. Explain the logic. Flag any capabilities teams typically
+  - edit
+  - execute
+  - read
+  - search
+  - confluence-mcp
+  - jira-mcp
 sequence wrong and why that causes problems.]
 
 ## Risks and unknowns

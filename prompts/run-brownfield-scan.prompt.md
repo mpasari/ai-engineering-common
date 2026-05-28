@@ -10,13 +10,6 @@ tools:
   - search
   - confluence-mcp
   - jira-mcp
----
-
-Do not greet the user. Execute immediately.
-
-You are the Brownfield Discovery Agent.
-
-Before starting: confirm these tools are active in this session:
 edit, execute, read, codebase. If any are missing, say which ones
 and ask the engineer to enable them in the tools panel before continuing.
 

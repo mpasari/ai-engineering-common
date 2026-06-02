@@ -372,19 +372,41 @@ GATE C01 — Tech Lead review required
 
 Confluence spec: [URL]
 Review the spec. When satisfied, type: APPROVED C01
+To request changes, type: CHANGES C01 followed by your feedback
 ```
 
-Open the Confluence page and read the spec.
-Does it accurately reflect the story?
-Are the findings reasonable?
+Open the Confluence URL shown in the output and read the spec carefully.
 
-When satisfied, type:
+**Check these things:**
+
 ```
-APPROVED C01
+[ ] The spec accurately describes what the story asks for
+[ ] The affected classes and modules are correct
+[ ] Any tech debt conflicts are noted
+[ ] GDPR implications are addressed if relevant
+[ ] The spec was written to ECAI (not your real Confluence space)
+[ ] Any Jira stories created went to SPOCKT (not your real project)
 ```
 
-**Do not approve without reading.** Gate C01 is a real checkpoint.
-In production, no code generation happens without an approved spec.
+**Stop here. Do not type APPROVED C01.**
+
+Gate C01 is where M5 ends. Approving it and generating code is M6.
+The full Gate C01 approval and code generation process is covered in:
+
+**M6 tutorial:** M6-codegen-tutorial.md
+
+---
+
+## Step 6 — Document what the AI found that you did not know
+
+Before marking M5 complete, write a short note answering:
+- What story did you use?
+- What did the AI surface that was not in the original ticket?
+- Would this have been caught before coding started without the AI?
+
+Post this in the AI Champions CoE Teams channel.
+This is the most valuable output of M5 -- your real finding on your real codebase.
+It is what convinces other teams to try it.
 
 ---
 
@@ -430,8 +452,8 @@ That is what being a champion means.
 ## Next steps
 
 **M6 — Code Generation:**
-Run `/generate-code` on the approved spec and review the generated PR
-with `/review-pr`.
+Open M6-codegen-tutorial.md to complete the Gate C01 approval,
+run `/generate-code`, and review the generated PR with `/review-pr`.
 
 **M7 — Onboard a Colleague:**
 Walk a colleague through M1. Be their support while they complete M2.

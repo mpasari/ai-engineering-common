@@ -193,11 +193,11 @@ function generateCopilot() {
     const baseUrl      = (raw.match(/Jira base URL:\s*(\S+)/) || [])[1] || '[not set]';
     const boardType    = (raw.match(/Board type:\s*(\S+)/)    || [])[1] || 'Scrum';
     const teamFieldId  = (raw.match(/Field ID:\s*(\S+)/)      || [])[1] || '[not set]';
-    const teamValue    = (raw.match(/Value for demos:\s*(.+)/)|| [])[1]?.trim() || '[not set]';
+    const teamValue    = (raw.match(/^\s+(?:Value for demos|Value):\s*(.+)/m) || [])[1]?.trim() || '[not set]';
 
     // Extract real project key (read-only) if present
     const realProject  = (raw.match(/Real Jira project:\s*(\S+)/) || [])[1] || null;
-    const realSpace    = (raw.match(/Real Confluence space:\s*(\S+)/) || [])[1] || null;
+    const realSpace    = (raw.match(/(?:Real )?Confluence space:\s*(\S+)/) || [])[1] || null;
 
     let summary = `# JIRA_CONFIG (summary)\n`;
     summary += `Write target: ${projectKey} at ${baseUrl}\n`;

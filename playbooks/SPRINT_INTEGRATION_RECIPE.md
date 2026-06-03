@@ -43,12 +43,53 @@ changes significantly or the codebase undergoes major structural change.
 
 ---
 
-### OT-1 — Brownfield Scan and DEEP Analysis
+### OT-1 — Configure JIRA_CONFIG.md First
+
+**Owner:** Tech Lead
+**Time:** 15 minutes
+**When:** Before running the brownfield scan -- this must be done first
+
+The brownfield scan reads JIRA_CONFIG.md when writing every output file.
+If JIRA_CONFIG.md is not configured before the scan runs, every registry
+file will have the wrong owner, project key, and team name. Correcting
+this after the scan is manual rework. Configure it first.
+
+**What to do:**
+
+After `npx aec init`, open `.ai/project/JIRA_CONFIG.md` and replace
+the demo values with real project values:
+
+```markdown
+## Project configuration (PRODUCTION)
+
+Project key:           [YOUR-REAL-PROJECT-KEY]
+Jira base URL:         https://jira.atlassian.teliacompany.net
+Board type:            [Scrum or Kanban]
+Default issue type:    Story
+
+Custom field mappings:
+  Development Team:    customfield_12725
+  Value:               [YOUR-REAL-TEAM-NAME]
+
+Confluence space:      [YOUR-REAL-CONFLUENCE-SPACE-KEY]
+Confluence parent:     [PAGE-ID for specs to be written under]
+
+## Notes
+Specs written by: Product Owner during refinement prep
+Gate C01 approved by: Tech Lead (async, before sprint planning)
+Code generation: Developer during sprint
+```
+
+Save the file. Do not run the scan yet.
+
+---
+
+### OT-2 — Brownfield Scan and DEEP Analysis
 
 **Owner:** Tech Lead
 **Supported by:** CoE Champion
 **Time:** Half day
-**When:** Before sprint 1
+**When:** After OT-1 -- JIRA_CONFIG.md must be configured first
 
 **What to do:**
 
@@ -66,6 +107,11 @@ npm link @telia-company/ai-engineering-common
 
 # Initialise
 npx aec init
+
+# Configure JIRA_CONFIG.md (OT-1) before continuing
+# Then verify it is configured correctly:
+Get-Content ".ai\project\JIRA_CONFIG.md" | Select-Object -First 10
+# Should show your real project key and team name -- not SPOCK Common
 ```
 
 Open VS Code. In Copilot Chat Agent mode:
@@ -73,24 +119,17 @@ Open VS Code. In Copilot Chat Agent mode:
 /run-brownfield-scan
 ```
 
-After the scan completes, run DEEP analysis on the highest-risk module:
-```
-/explain-module [core-module] DEEP
-```
+**Important: The scan writes your real team name into every output file.**
+**Verify JIRA_CONFIG.md is correct before running the scan.**
 
-**Important: The scan produces a first draft. It is not ground truth.**
-Champions consistently report false positives and inaccuracies in the initial scan output.
-Every file under `.ai/project/` must be reviewed and confirmed accurate by the
-Tech Lead before being committed to main. Do not commit unreviewed files.
-
-**Review every .ai/project/ file in this order:**
+After the scan completes, review every `.ai/project/` file in this order:
 
 **MODULE_REGISTRY.md -- highest priority:**
 For every module in the registry:
 ```
 [ ] Classification is correct (Active / Legacy / Deprecated)
 [ ] Description accurately reflects what the module does
-[ ] Owner team is correct
+[ ] Owner team shows YOUR-REAL-TEAM-NAME (not SPOCK Common)
 [ ] Risk level is justified
 ```
 
@@ -99,14 +138,13 @@ For each module the scan classified as Legacy -- verify with git log:
 git log --format="%h %ad %an -- %s" --date=short -- [module]/ | Select-Object -First 10
 ```
 If there are commits in the last 12 months -- reclassify as Active.
-Low commit count alone is not sufficient for Legacy classification.
 
 **INTEGRATION_MAP.md:**
 ```
 [ ] All external systems are named (not just "external-api")
 [ ] Protocol and auth method are correct for each integration
 [ ] Both inbound AND outbound integrations are listed
-[ ] DPA status is noted (Unknown is acceptable initially -- flag for Security Lead)
+[ ] DPA status is noted (Unknown is acceptable initially)
 ```
 
 **DATA_MODEL.md:**
@@ -119,8 +157,9 @@ Low commit count alone is not sufficient for Legacy classification.
 
 **TECH_DEBT_REGISTRY.md:**
 ```
-[ ] Severity ratings are reasonable (check with team)
+[ ] Severity ratings are reasonable
 [ ] TD items reference real files and classes (not hallucinated paths)
+[ ] Owner shows YOUR-REAL-TEAM-NAME (not SPOCK Common)
 [ ] No duplicate items
 ```
 
@@ -128,7 +167,6 @@ Low commit count alone is not sufficient for Legacy classification.
 ```
 [ ] All topics are listed
 [ ] Consumer and producer modules are correctly identified
-[ ] Any single-module consumer concentration is flagged as architectural risk
 ```
 
 **ARCHITECTURE_OVERVIEW.md:**
@@ -138,19 +176,14 @@ Low commit count alone is not sufficient for Legacy classification.
 [ ] Any incorrect statements are corrected
 ```
 
-Only after ALL files are verified should you commit.
+Only after ALL files are verified should you continue to DEEP analysis.
 
 ---
 
-**DEEP Analysis -- run for ALL Active modules, not just the core module:**
-
-The scan gives a shallow view of each module. DEEP analysis surfaces hidden
-coupling, latent bugs, undocumented business rules, and refactoring prerequisites
-that are invisible to the scan. Champions consistently find things in DEEP analysis
-that the team did not know existed.
+**DEEP Analysis -- run for ALL Active modules:**
 
 Run DEEP analysis in priority order:
-1. Highest commit count first (most business logic accumulated)
+1. Highest commit count first
 2. Any module consuming multiple Kafka topics
 3. Any module handling PII
 4. All remaining Active modules
@@ -163,82 +196,49 @@ For each DEEP analysis:
 ```
 [ ] Output saved to .ai/project/deep/[module-name]-DEEP.md
 [ ] Tech Lead has read and verified the findings
-[ ] Any Critical or High findings have Jira stories created
+[ ] Any Critical or High findings are in TECH_DEBT_REGISTRY.md
 [ ] Refactoring prerequisites are documented
-[ ] MODULE_REGISTRY.md updated with key risks from DEEP output
 ```
 
-This takes longer than a single DEEP run. Budget one full day for a repo with
-10+ Active modules. It is worth it -- teams that skip DEEP analysis on some
-modules consistently encounter surprises mid-sprint.
+Do NOT run `npx aec update` between DEEP analyses.
+Copilot reads `.ai/project/` files directly from disk.
+Run `npx aec update` once after ALL DEEP analyses are complete.
 
-Commit only after all DEEP analyses are reviewed:
+When all Active modules are done:
+
 ```powershell
-git add .ai\ .githubgit commit -m "chore: AI Engineering Commons setup -- brownfield scan and DEEP analysis complete
+git add .ai\projectgit commit -m "chore: brownfield scan and DEEP analysis complete
 
 Modules scanned: [N]
 Active modules with DEEP analysis: [N]
 Tech debt items identified: [N]
-PII findings: [summary]
 All .ai/project/ files reviewed and confirmed accurate by Tech Lead"
 git push origin ai-commons-setup
 # Raise PR to main -- Tech Lead reviews and merges
 ```
 
-**Output (only after Tech Lead verification):**
-- `.ai/project/MODULE_REGISTRY.md` -- all modules classified correctly and verified
-- `.ai/project/TECH_DEBT_REGISTRY.md` -- all known debt items documented and verified
-- `.ai/project/INTEGRATION_MAP.md` -- all external systems mapped and verified
-- `.ai/project/DATA_MODEL.md` -- PII fields identified and verified
-- `.ai/project/deep/[module]-DEEP.md` -- one file per Active module, all verified
-- Everything merged to main via PR
+Then run once to refresh copilot-instructions.md with the populated project files:
 
----
-
-### OT-2 — Configure JIRA_CONFIG.md for Real Project
-
-**Owner:** Tech Lead
-**Time:** 15 minutes
-**When:** After brownfield scan is merged to main
-
-**What to do:**
-
-Open `.ai/project/JIRA_CONFIG.md` and update for real project use:
-
-```markdown
-## Project configuration (PRODUCTION -- writes go to real project)
-
-Project key:           [YOUR-REAL-PROJECT-KEY]
-Jira base URL:         https://jira.atlassian.teliacompany.net
-Board type:            [Scrum or Kanban]
-Default issue type:    Story
-
-Custom field mappings:
-  Development Team:    customfield_12725
-  Value:               [YOUR-TEAM-NAME]
-
-Confluence space:      [YOUR-REAL-CONFLUENCE-SPACE-KEY]
-Confluence parent:     [PAGE-ID for specs to be written under]
-
-## Notes
-Specs written by: Product Owner during refinement prep
-Gate C01 approved by: Tech Lead (async, before sprint planning)
-Code generation: Developer during sprint
+```powershell
+npx aec update
 ```
 
-Commit and push to main.
-
-Then run the consolidated story creation command:
+Then create all tech debt stories in one batch:
 
 ```
 /create-tech-debt-stories
 ```
 
-This reads all DEEP analysis files and TECH_DEBT_REGISTRY.md, deduplicates
-all findings, and presents a Gate C01 batch for Tech Lead review before
-creating any stories in the real Jira project.
+This reads all DEEP files and TECH_DEBT_REGISTRY.md, deduplicates findings,
+and presents Gate C01 for Tech Lead review before creating any Jira stories.
 
----
+**Output (only after Tech Lead verification):**
+- `.ai/project/MODULE_REGISTRY.md` -- all modules classified and verified
+- `.ai/project/TECH_DEBT_REGISTRY.md` -- all debt items with Jira keys
+- `.ai/project/INTEGRATION_MAP.md` -- all integrations verified
+- `.ai/project/DATA_MODEL.md` -- PII fields identified and verified
+- `.ai/project/deep/[module]-DEEP.md` -- one file per Active module
+- Everything merged to main via PR
 
 ### OT-3 — Agree Team AI Engineering Norms
 

@@ -113,48 +113,83 @@ function readAgentFiles(agentList) {
 // This is the file that makes "WRITE_SPEC PROJ-42" work in Copilot
 // ---------------------------------------------------------------------------
 
+// ── REPLACEMENT for generateCopilot() in scripts/cli.js ──────────────
+//
+// What changed and why:
+//
+// BEFORE: copilot-instructions.md included foundation files, project
+//         context, ALL agent skill files, AND all standards.
+//         Result: 3500+ lines loaded into every single Copilot conversation,
+//         exhausting the context window before the user types anything.
+//
+// AFTER:  copilot-instructions.md contains only what every conversation
+//         needs: identity, constraints, and project context (5 files).
+//         Result: ~50 lines. Context window stays clear for actual work.
+//
+// Agent skill files and standards are NOT included here because:
+//   1. Each /command is delivered as a .prompt.md file which contains
+//      its own instructions -- the skill files in copilot-instructions.md
+//      are redundant and conflict with prompt file execution.
+//   2. GitHub Copilot loads copilot-instructions.md into EVERY conversation.
+//      Agent skills are only needed when a specific command runs.
+//   3. The note already in the original code says COPILOT_COMMANDS.md is
+//      intentionally excluded for the same reason -- same logic applies
+//      to the agent skill files.
+//
+// npx aec update regenerates this file from the current .ai/project/ files.
+// The project context section (ARCHITECTURE_OVERVIEW, MODULE_REGISTRY etc.)
+// grows as the team runs the brownfield scan and fills in their data.
+// That is the right behaviour -- project context should grow, skill files
+// should not be here at all.
+ 
 function generateCopilot() {
   const outPath = path.join(CWD, '.github', 'copilot-instructions.md');
-
-  const coreAgents      = getCoreAgents();
-  const conditionalAgents = getConditionalAgents();
-  const allAgents       = [...new Set([...coreAgents, ...conditionalAgents])];
-  const agentBlocks     = readAgentFiles(allAgents);
-
+ 
   const sections = [
-    // Identity and constraints
+    // ── IDENTITY AND CONSTRAINTS (~30 lines each) ────────────────────
+    // These go in every conversation. They define what the AI is and
+    // what it must never do regardless of which command is running.
     readCommons('foundation/AGENT.md'),
     readCommons('foundation/HITL_PROTOCOL.md'),
-    readCommons('foundation/CODING_STANDARDS.md'),
-
-    // NOTE: COPILOT_COMMANDS.md is intentionally NOT included here.
-    // Commands are delivered as .prompt.md files in .github/prompts/.
-    // Including the command menu in copilot-instructions.md causes the
-    // model to describe commands instead of executing them.
-
-    // Project context -- specific to this codebase
-    readProject('ARCHITECTURE_OVERVIEW.md'),
+    readCommons('foundation/PRIVACY_GUARDRAILS.md'),
+ 
+    // ── PROJECT CONTEXT (~50 lines each when populated) ──────────────
+    // Populated by /run-brownfield-scan and npx aec update.
+    // Empty stubs on first init -- grow as the team uses the commons.
+    // This is the AI's memory of the codebase. It belongs here.
+    readProject('JIRA_CONFIG.md'),
     readProject('MODULE_REGISTRY.md'),
+    readProject('ARCHITECTURE_OVERVIEW.md'),
     readProject('INTEGRATION_MAP.md'),
     readProject('DATA_MODEL.md'),
-    readProject('JIRA_CONFIG.md'),
-
-    // Agent skill files -- how each command executes
-    ...agentBlocks,
-
-    // Standards referenced by agents
-    readCommons('foundation/SECURITY_STANDARDS.md'),
-    readCommons('foundation/PERFORMANCE_GUIDELINES.md'),
-    readCommons('foundation/ACCESSIBILITY_STANDARDS.md'),
-    readCommons('foundation/API_DESIGN_STANDARDS.md'),
-    readCommons('foundation/PRIVACY_GUARDRAILS.md'),
+ 
+    // NOTE: Agent skill files are intentionally NOT included here.
+    // Each /command is a .prompt.md file in .github/prompts/ which
+    // contains its own complete instructions. Including skill files
+    // here causes the model to describe commands instead of executing
+    // them, AND bloats the context window for every conversation.
+    //
+    // NOTE: CODING_STANDARDS, SECURITY_STANDARDS, PERFORMANCE_GUIDELINES,
+    // ACCESSIBILITY_STANDARDS, and API_DESIGN_STANDARDS are intentionally
+    // NOT included here. They are referenced by individual prompt files
+    // when relevant. Including them in every conversation wastes context
+    // on conversations that have nothing to do with code generation.
+ 
   ].filter(Boolean);
-
+ 
   writeFile(outPath, sections.join('\n\n---\n\n'));
-
+ 
+  const lineCount = sections.join('\n\n---\n\n').split('\n').length;
+ 
   log('updated  .github/copilot-instructions.md (' +
     sections.length + ' sections, ' +
-    agentBlocks.length + ' agent skill files, commands included)');
+    lineCount + ' lines)');
+ 
+  if (lineCount > 200) {
+    log('WARNING: copilot-instructions.md is ' + lineCount + ' lines.');
+    log('         This may cause context window issues.');
+    log('         Check that .ai/project/ files are not excessively large.');
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -299,8 +334,8 @@ if (cmd === 'init') {
 
   header('Generating tool configs');
   generateCopilot();
-  generateClaude();
-  generateCursor();
+  //generateClaude();
+  //generateCursor();
 
   process.stdout.write('\n  Done.\n\n');
   process.stdout.write('  Next steps:\n');

@@ -3,16 +3,29 @@
 // @telia-company/ai-engineering-common
 // Commands: init | update | list | check | version
 //
-// copilot-instructions.md now includes:
-//   - AGENT.md (who Copilot is)
-//   - HITL_PROTOCOL.md (gate system)
-//   - CODING_STANDARDS.md (patterns)
-//   - COPILOT_COMMANDS.md (all commands engineers can type)
-//   - Project-layer files (architecture, modules, integrations, data model)
-//   - Core agent skill files (so WRITE_SPEC etc. execute correctly)
+// Tool config generation behaviour:
 //
-// CLAUDE.md includes everything above + more agent skill files
-// .cursorrules includes coding standards only
+//   copilot-instructions.md:
+//     - Identity + constraints (AGENT.md, HITL_PROTOCOL.md, PRIVACY_GUARDRAILS.md)
+//     - Project context from .ai/project/ (grows as brownfield scan populates files)
+//     - NO agent skill files (redundant -- .prompt.md files contain own instructions)
+//     - NO standards (referenced by prompt files when needed, not every conversation)
+//     - Safe to regenerate with npx aec update -- lean by design
+//
+//   CLAUDE.md:
+//     - Full agent skill files + all standards + project context
+//     - For Claude Code / Cursor users only
+//     - Skipped in GitHub Copilot environments (auto-detected or via aec.config.json)
+//
+//   .cursorrules:
+//     - For Cursor IDE only
+//     - Skipped in GitHub Copilot environments
+//
+//   Environment detection (in priority order):
+//     1. aec.config.json aiTool field: "copilot" | "claude" | "all"
+//     2. .vscode/ directory exists -> copilot
+//     3. .github/copilot-instructions.md already exists -> copilot
+//     4. Default -> all (backwards compatible)
 
 'use strict';
 
@@ -56,12 +69,34 @@ function log(msg)    { process.stdout.write('  ' + msg + '\n'); }
 function header(msg) { process.stdout.write('\n  ' + msg + '\n  ' + '-'.repeat(msg.length) + '\n'); }
 
 // ---------------------------------------------------------------------------
+// Environment detection
+// ---------------------------------------------------------------------------
+
+function aiToolTarget() {
+  // 1. Explicit config wins
+  const configPath = path.join(CWD, 'aec.config.json');
+  if (fs.existsSync(configPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      if (config.aiTool) return config.aiTool;
+    } catch (e) { /* malformed -- fall through */ }
+  }
+
+  // 2. .vscode directory indicates VS Code + GitHub Copilot
+  if (fs.existsSync(path.join(CWD, '.vscode'))) return 'copilot';
+
+  // 3. Existing copilot-instructions.md indicates Copilot environment
+  if (fs.existsSync(path.join(CWD, '.github', 'copilot-instructions.md'))) return 'copilot';
+
+  // 4. Default: generate everything (backwards compatible)
+  return 'all';
+}
+
+// ---------------------------------------------------------------------------
 // Agent selection based on project-layer file content
 // ---------------------------------------------------------------------------
 
 function getCoreAgents() {
-  // These 8 agents are always included in copilot-instructions.md
-  // They cover the most common daily commands
   return [
     'ORCHESTRATOR_AGENT.md',
     'SPEC_WRITER_AGENT.md',
@@ -75,13 +110,13 @@ function getCoreAgents() {
 }
 
 function getConditionalAgents() {
-  const agents     = [];
-  const registry   = readProject('MODULE_REGISTRY.md')   || '';
-  const kafka      = readProject('KAFKA_TOPICS.md')       || '';
-  const dataModel  = readProject('DATA_MODEL.md')         || '';
-  const techDebt   = readProject('TECH_DEBT_REGISTRY.md') || '';
-  const sre        = readProject('SRE_SERVICE_CONFIG.md') || '';
-  const integMap   = readProject('INTEGRATION_MAP.md')    || '';
+  const agents    = [];
+  const registry  = readProject('MODULE_REGISTRY.md')   || '';
+  const kafka     = readProject('KAFKA_TOPICS.md')       || '';
+  const dataModel = readProject('DATA_MODEL.md')         || '';
+  const techDebt  = readProject('TECH_DEBT_REGISTRY.md') || '';
+  const sre       = readProject('SRE_SERVICE_CONFIG.md') || '';
+  const integMap  = readProject('INTEGRATION_MAP.md')    || '';
 
   const hasKafka       = kafka.length > 100 && !kafka.includes('Not applicable') && kafka.includes('topic');
   const hasDatabase    = dataModel.length > 100 && dataModel.includes('table');
@@ -109,117 +144,66 @@ function readAgentFiles(agentList) {
 // ---------------------------------------------------------------------------
 // Generate .github/copilot-instructions.md
 //
-// COMPREHENSIVE -- includes commands + core agents + project context
-// This is the file that makes "WRITE_SPEC PROJ-42" work in Copilot
+// LEAN by design -- identity + project context only.
+// Agent skill files and standards are intentionally excluded:
+//   - Each /command is a .prompt.md with its own complete instructions
+//   - Including skill files causes describe-not-execute behaviour
+//   - Standards waste context on non-code-gen conversations
+// Project context IS included and grows as brownfield scan runs.
+// npx aec update is safe to run -- it only refreshes project context.
 // ---------------------------------------------------------------------------
 
-// ── REPLACEMENT for generateCopilot() in scripts/cli.js ──────────────
-//
-// What changed and why:
-//
-// BEFORE: copilot-instructions.md included foundation files, project
-//         context, ALL agent skill files, AND all standards.
-//         Result: 3500+ lines loaded into every single Copilot conversation,
-//         exhausting the context window before the user types anything.
-//
-// AFTER:  copilot-instructions.md contains only what every conversation
-//         needs: identity, constraints, and project context (5 files).
-//         Result: ~50 lines. Context window stays clear for actual work.
-//
-// Agent skill files and standards are NOT included here because:
-//   1. Each /command is delivered as a .prompt.md file which contains
-//      its own instructions -- the skill files in copilot-instructions.md
-//      are redundant and conflict with prompt file execution.
-//   2. GitHub Copilot loads copilot-instructions.md into EVERY conversation.
-//      Agent skills are only needed when a specific command runs.
-//   3. The note already in the original code says COPILOT_COMMANDS.md is
-//      intentionally excluded for the same reason -- same logic applies
-//      to the agent skill files.
-//
-// npx aec update regenerates this file from the current .ai/project/ files.
-// The project context section (ARCHITECTURE_OVERVIEW, MODULE_REGISTRY etc.)
-// grows as the team runs the brownfield scan and fills in their data.
-// That is the right behaviour -- project context should grow, skill files
-// should not be here at all.
- 
 function generateCopilot() {
   const outPath = path.join(CWD, '.github', 'copilot-instructions.md');
- 
+
   const sections = [
-    // ── IDENTITY AND CONSTRAINTS (~30 lines each) ────────────────────
-    // These go in every conversation. They define what the AI is and
-    // what it must never do regardless of which command is running.
     readCommons('foundation/AGENT.md'),
     readCommons('foundation/HITL_PROTOCOL.md'),
     readCommons('foundation/PRIVACY_GUARDRAILS.md'),
- 
-    // ── PROJECT CONTEXT (~50 lines each when populated) ──────────────
-    // Populated by /run-brownfield-scan and npx aec update.
-    // Empty stubs on first init -- grow as the team uses the commons.
-    // This is the AI's memory of the codebase. It belongs here.
     readProject('JIRA_CONFIG.md'),
     readProject('MODULE_REGISTRY.md'),
     readProject('ARCHITECTURE_OVERVIEW.md'),
     readProject('INTEGRATION_MAP.md'),
     readProject('DATA_MODEL.md'),
- 
-    // NOTE: Agent skill files are intentionally NOT included here.
-    // Each /command is a .prompt.md file in .github/prompts/ which
-    // contains its own complete instructions. Including skill files
-    // here causes the model to describe commands instead of executing
-    // them, AND bloats the context window for every conversation.
-    //
-    // NOTE: CODING_STANDARDS, SECURITY_STANDARDS, PERFORMANCE_GUIDELINES,
-    // ACCESSIBILITY_STANDARDS, and API_DESIGN_STANDARDS are intentionally
-    // NOT included here. They are referenced by individual prompt files
-    // when relevant. Including them in every conversation wastes context
-    // on conversations that have nothing to do with code generation.
- 
   ].filter(Boolean);
- 
+
   writeFile(outPath, sections.join('\n\n---\n\n'));
- 
+
   const lineCount = sections.join('\n\n---\n\n').split('\n').length;
- 
   log('updated  .github/copilot-instructions.md (' +
-    sections.length + ' sections, ' +
-    lineCount + ' lines)');
- 
-  if (lineCount > 200) {
-    log('WARNING: copilot-instructions.md is ' + lineCount + ' lines.');
-    log('         This may cause context window issues.');
-    log('         Check that .ai/project/ files are not excessively large.');
+    sections.length + ' sections, ' + lineCount + ' lines)');
+
+  if (lineCount > 300) {
+    log('NOTE: copilot-instructions.md is ' + lineCount + ' lines.');
+    log('      This is expected after a full brownfield scan.');
   }
 }
 
 // ---------------------------------------------------------------------------
 // Generate CLAUDE.md
-//
-// Everything copilot-instructions.md has, plus more agent skill files
+// Full agent skill files + all standards. Claude Code / Cursor only.
+// Skipped for GitHub Copilot environments.
 // ---------------------------------------------------------------------------
 
 function generateClaude() {
-  const outPath = path.join(CWD, 'CLAUDE.md');
+  const target = aiToolTarget();
 
-  const coreAgents        = getCoreAgents();
-  const conditionalAgents = getConditionalAgents();
+  if (target === 'copilot') {
+    log('skipped  CLAUDE.md (GitHub Copilot environment -- not needed)');
+    return;
+  }
 
-  // Claude gets additional agents that are too large for copilot-instructions
+  const outPath       = path.join(CWD, 'CLAUDE.md');
+  const coreAgents    = getCoreAgents();
+  const condAgents    = getConditionalAgents();
   const extendedAgents = [
-    'ESTIMATION_AGENT.md',
-    'PLANNING_AGENT.md',
-    'AC_EXECUTOR_AGENT.md',
-    'TEST_GEN_AGENT.md',
-    'ACCESSIBILITY_AGENT.md',
-    'PERFORMANCE_AGENT.md',
-    'DOCUMENTATION_AGENT.md',
-    'ARCH_DOC_AGENT.md',
-    'ONBOARDING_AGENT.md',
-    'RELEASE_AGENT.md',
-    'PIPELINE_AGENT.md',
+    'ESTIMATION_AGENT.md', 'PLANNING_AGENT.md', 'AC_EXECUTOR_AGENT.md',
+    'TEST_GEN_AGENT.md', 'ACCESSIBILITY_AGENT.md', 'PERFORMANCE_AGENT.md',
+    'DOCUMENTATION_AGENT.md', 'ARCH_DOC_AGENT.md', 'ONBOARDING_AGENT.md',
+    'RELEASE_AGENT.md', 'PIPELINE_AGENT.md',
   ];
 
-  const allAgents   = [...new Set([...coreAgents, ...conditionalAgents, ...extendedAgents])];
+  const allAgents   = [...new Set([...coreAgents, ...condAgents, ...extendedAgents])];
   const agentBlocks = readAgentFiles(allAgents);
 
   const sections = [
@@ -247,7 +231,6 @@ function generateClaude() {
   ].filter(Boolean);
 
   writeFile(outPath, sections.join('\n\n---\n\n'));
-
   log('updated  CLAUDE.md (' +
     sections.length + ' sections, ' +
     agentBlocks.length + ' agent skill files)');
@@ -255,9 +238,17 @@ function generateClaude() {
 
 // ---------------------------------------------------------------------------
 // Generate .cursorrules
+// Cursor IDE only. Skipped for GitHub Copilot environments.
 // ---------------------------------------------------------------------------
 
 function generateCursor() {
+  const target = aiToolTarget();
+
+  if (target === 'copilot') {
+    log('skipped  .cursorrules (GitHub Copilot environment -- not needed)');
+    return;
+  }
+
   const outPath = path.join(CWD, '.cursorrules');
   const content = join(
     readCommons('foundation/CODING_STANDARDS.md'),
@@ -310,7 +301,7 @@ if (cmd === 'init') {
     if (created === 0) log('All project-layer files exist. Run: npx aec update');
   }
 
-  // Copy native Copilot prompt files to .github/prompts/
+  // Copy prompt files to .github/prompts/
   const promptSrc = path.join(PKG_DIR, 'prompts');
   if (fs.existsSync(promptSrc)) {
     const promptDest = path.join(CWD, '.github', 'prompts');
@@ -334,16 +325,20 @@ if (cmd === 'init') {
 
   header('Generating tool configs');
   generateCopilot();
-  //generateClaude();
-  //generateCursor();
+  generateClaude();   // skipped automatically for copilot environment
+  generateCursor();   // skipped automatically for copilot environment
 
+  const target = aiToolTarget();
   process.stdout.write('\n  Done.\n\n');
+  if (target === 'copilot') {
+    process.stdout.write('  Environment detected: GitHub Copilot\n');
+    process.stdout.write('  CLAUDE.md and .cursorrules were not generated.\n');
+    process.stdout.write('  Tip: add aec.config.json with { "aiTool": "copilot" } to make this explicit.\n\n');
+  }
   process.stdout.write('  Next steps:\n');
-  process.stdout.write('    1. Fill in .ai/project/ARCHITECTURE_OVERVIEW.md\n');
-  process.stdout.write('    2. Fill in .ai/project/MODULE_REGISTRY.md\n');
-  process.stdout.write('    3. Fill in .ai/project/INTEGRATION_MAP.md\n');
-  process.stdout.write('    4. Run: npx aec update\n');
-  process.stdout.write('    5. Open Copilot Chat and type: DRAFT_BRIEF\n\n');
+  process.stdout.write('    1. Fill in .ai/project/JIRA_CONFIG.md\n');
+  process.stdout.write('    2. Open Copilot Chat Agent mode and run: /run-brownfield-scan\n');
+  process.stdout.write('    3. After scan completes: npx aec update\n\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -353,7 +348,7 @@ if (cmd === 'init') {
 else if (cmd === 'update') {
   header('aec -- regenerating tool configs and prompts');
 
-  // Sync any new prompt files from the commons
+  // Sync any new prompt files from the commons package
   const promptSrc  = path.join(PKG_DIR, 'prompts');
   const promptDest = path.join(CWD, '.github', 'prompts');
   if (fs.existsSync(promptSrc)) {
@@ -368,19 +363,24 @@ else if (cmd === 'update') {
         added++;
       }
     }
-    if (added > 0) log('');
+    if (added === 0) log('prompts  all up to date');
+    log('');
   }
 
   writeVersion();
-  generateCopilot();
-  generateClaude();
-  generateCursor();
+  generateCopilot();  // always regenerated -- lean, safe, picks up latest .ai/project/ content
+  generateClaude();   // skipped for copilot environments
+  generateCursor();   // skipped for copilot environments
 
+  const target = aiToolTarget();
   process.stdout.write('\n  Done. Commit the updated files:\n');
-  process.stdout.write('    .github/prompts/     (any new prompt files)\n');
+  process.stdout.write('    .github/prompts/\n');
   process.stdout.write('    .github/copilot-instructions.md\n');
-  process.stdout.write('    CLAUDE.md\n');
-  process.stdout.write('    .cursorrules\n\n');
+  if (target !== 'copilot') {
+    process.stdout.write('    CLAUDE.md\n');
+    process.stdout.write('    .cursorrules\n');
+  }
+  process.stdout.write('\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -454,9 +454,9 @@ else if (cmd === 'check') {
     const found     = placeholders.filter(p => content.includes(p));
     const lineCount = content.split('\n').length;
 
-    if (lineCount < 10)       { process.stdout.write('  EMPTY    ' + file + '\n'); issues++; }
-    else if (found.length > 0){ process.stdout.write('  STUB     ' + file + '  (' + found[0] + ')\n'); issues++; }
-    else                       { process.stdout.write('  OK       ' + file + '\n'); }
+    if (lineCount < 10)        { process.stdout.write('  EMPTY    ' + file + '\n'); issues++; }
+    else if (found.length > 0) { process.stdout.write('  STUB     ' + file + '  (' + found[0] + ')\n'); issues++; }
+    else                        { process.stdout.write('  OK       ' + file + '\n'); }
   }
 
   process.stdout.write('\n');
@@ -484,15 +484,16 @@ else {
   process.stdout.write('\n');
   process.stdout.write('  aec v' + PKG.version + ' -- AI Engineering Common CLI\n\n');
   process.stdout.write('  Commands:\n');
-  process.stdout.write('    aec init              Bootstrap .ai/ folder in a new project\n');
-  process.stdout.write('    aec update            Regenerate copilot-instructions.md, CLAUDE.md, .cursorrules\n');
+  process.stdout.write('    aec init              Bootstrap .ai/ folder and prompt files\n');
+  process.stdout.write('    aec update            Regenerate tool configs from current .ai/project/ files\n');
   process.stdout.write('    aec list [scope]      List files (commands|agents|foundation|playbooks|sdlc)\n');
   process.stdout.write('    aec check             Validate .ai/project/ files are filled in\n');
   process.stdout.write('    aec version           Show installed version\n\n');
-  process.stdout.write('  After init and filling in .ai/project/ files:\n');
-  process.stdout.write('    npx aec update\n');
-  process.stdout.write('    Then in Copilot Agent mode: DRAFT_BRIEF\n\n');
+  process.stdout.write('  Environment detection (in priority order):\n');
+  process.stdout.write('    1. aec.config.json { "aiTool": "copilot|claude|all" }\n');
+  process.stdout.write('    2. .vscode/ directory present -> copilot\n');
+  process.stdout.write('    3. .github/copilot-instructions.md exists -> copilot\n');
+  process.stdout.write('    4. default -> all\n\n');
+  process.stdout.write('  Add aec.config.json to your repo to be explicit:\n');
+  process.stdout.write('    { "aiTool": "copilot" }  for GitHub Copilot teams\n\n');
 }
-
-// Note: prompts are not appended here -- the file already handles them
-// via the init command's template copying logic below

@@ -54,33 +54,61 @@ If JIRA_CONFIG.md is not configured before the scan runs, every registry
 file will have the wrong owner, project key, and team name. Correcting
 this after the scan is manual rework. Configure it first.
 
-**What to do:**
+**This is a one-time task. Do it before running the scan.**
 
-After `npx aec init`, open `.ai/project/JIRA_CONFIG.md` and replace
-the demo values with real project values:
+**Find your real values first:**
 
-```markdown
-## Project configuration (PRODUCTION)
+```
+Project key:
+  Open Jira → your team board → project key is in the URL
+  Example: jira.atlassian.teliacompany.net/jira/software/projects/NOCT → key is NOCT
 
-Project key:           [YOUR-REAL-PROJECT-KEY]
-Jira base URL:         https://jira.atlassian.teliacompany.net
-Board type:            [Scrum or Kanban]
-Default issue type:    Story
+Team name and valid values:
+  In Copilot Chat Agent mode:
+  "@jira-mcp search fields for project [YOUR-KEY]"
+  Find customfield_12725 and note all valid option values for Development Team
 
-Custom field mappings:
-  Development Team:    customfield_12725
-  Value:               [YOUR-REAL-TEAM-NAME]
+Confluence space key:
+  Open your team Confluence space → space key is in the URL
+  Example: itwiki.atlassian.teliacompany.net/spaces/AIC → key is AIC
 
-Confluence space:      [YOUR-REAL-CONFLUENCE-SPACE-KEY]
-Confluence parent:     [PAGE-ID for specs to be written under]
-
-## Notes
-Specs written by: Product Owner during refinement prep
-Gate C01 approved by: Tech Lead (async, before sprint planning)
-Code generation: Developer during sprint
+Confluence parent page ID:
+  Open the Confluence page where specs should be written under
+  Click ··· → Page Information → copy the numeric Page ID from the URL
 ```
 
-Save the file. Do not run the scan yet.
+After `npx aec init`, open `.ai/project/JIRA_CONFIG.md` and fill in
+your real values. The file already has the correct structure -- just
+update the placeholder values:
+
+```
+Project key:        [YOUR-REAL-PROJECT-KEY]     e.g. NOCT
+Project name:       [YOUR-REAL-PROJECT-NAME]
+Board type:         [Scrum or Kanban]
+
+Development Team field:
+  Value:            [YOUR-REAL-TEAM-NAME]        e.g. AI
+  All valid values:
+    - [paste the values from jira-mcp field search]
+
+Confluence space:      [YOUR-SPACE-KEY]          e.g. AIC
+Confluence parent:     [PAGE-ID]                 e.g. 1313364211
+```
+
+**Important:** Use `Value:` not `Value for demos:` -- the commons
+reads this field when generating the JIRA summary in copilot-instructions.md.
+
+**Do not leave any `[placeholder]` values unfilled.**
+
+**Verify before continuing:**
+
+```powershell
+Get-Content ".ai\project\JIRA_CONFIG.md" | Select-Object -First 15
+# Must show your real project key and team name
+# Must NOT show SPOCK Common or placeholder text
+```
+
+Save the file. Do not run the scan until this check passes.
 
 ---
 

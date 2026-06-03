@@ -405,23 +405,103 @@ if (cmd === 'init') {
 else if (cmd === 'update') {
   header('aec -- regenerating tool configs and prompts');
 
-  // Sync any new prompt files from the commons package
+  // Sync prompt files from the commons package.
+  //
+  // Strategy: track what the commons originally delivered using a
+  // checksum sidecar file (.github/prompts/.aec-checksums.json).
+  // On each update:
+  //   NEW file in commons not in repo            -> copy it   (added)
+  //   File changed in commons:
+  //     local == previous commons checksum       -> update it (not customised)
+  //     local != previous commons checksum       -> skip it   (customised -- keep)
+  //
+  // Bug fixes in the commons reach all teams automatically.
+  // Local customisations are always preserved.
+  // Use: npx aec update --force-prompts to override all files.
+
+  const crypto     = require('crypto');
   const promptSrc  = path.join(PKG_DIR, 'prompts');
   const promptDest = path.join(CWD, '.github', 'prompts');
+  const checksumFile = path.join(promptDest, '.aec-checksums.json');
+
+  function md5(str) {
+    return require('crypto').createHash('md5').update(str || '').digest('hex');
+  }
+
   if (fs.existsSync(promptSrc)) {
     fs.mkdirSync(promptDest, { recursive: true });
+
+    let checksums = {};
+    if (fs.existsSync(checksumFile)) {
+      try { checksums = JSON.parse(fs.readFileSync(checksumFile, 'utf-8')); }
+      catch (e) { checksums = {}; }
+    }
+
     const prompts = fs.readdirSync(promptSrc).filter(f => f.endsWith('.prompt.md'));
-    let added = 0;
+    let added = 0, updated = 0, skipped = 0, customised = 0;
+
     for (const f of prompts) {
-      const dest = path.join(promptDest, f);
+      const src         = path.join(promptSrc, f);
+      const dest        = path.join(promptDest, f);
+      const commons     = readFile(src) || '';
+      const commonsHash = md5(commons);
+
       if (!fs.existsSync(dest)) {
-        writeFile(dest, readFile(path.join(promptSrc, f)) || '');
+        // New file -- always copy
+        writeFile(dest, commons);
+        checksums[f] = commonsHash;
         log('added    .github/prompts/' + f);
         added++;
+      } else {
+        const local     = readFile(dest) || '';
+        const localHash = md5(local);
+
+        if (localHash === commonsHash) {
+          // Already up to date
+          skipped++;
+        } else if (checksums[f] && localHash === checksums[f]) {
+          // Local matches the PREVIOUS commons version -- not customised, safe to update
+          writeFile(dest, commons);
+          checksums[f] = commonsHash;
+          log('updated  .github/prompts/' + f + '  (commons fix applied)');
+          updated++;
+        } else if (!checksums[f]) {
+          // No checksum record -- predates tracking. Conservative: keep local.
+          checksums[f] = commonsHash;
+          log('skipped  .github/prompts/' + f + '  (no baseline -- use --force-prompts to override)');
+          customised++;
+        } else {
+          // Local has been customised -- do not overwrite
+          log('kept     .github/prompts/' + f + '  (locally customised)');
+          customised++;
+        }
       }
     }
-    if (added === 0) log('prompts  all up to date');
+
+    writeFile(checksumFile, JSON.stringify(checksums, null, 2));
+
+    const parts = [];
+    if (added     > 0) parts.push(added     + ' added');
+    if (updated   > 0) parts.push(updated   + ' updated');
+    if (skipped   > 0) parts.push(skipped   + ' already current');
+    if (customised > 0) parts.push(customised + ' customised (kept)');
+    log('prompts  ' + (parts.length ? parts.join(', ') : 'no changes'));
     log('');
+
+    // --force-prompts: overwrite ALL prompt files regardless of customisations
+    if (args.includes('--force-prompts')) {
+      let forced = 0;
+      const forceChecksums = {};
+      for (const f of prompts) {
+        const commons = readFile(path.join(promptSrc, f)) || '';
+        writeFile(path.join(promptDest, f), commons);
+        forceChecksums[f] = md5(commons);
+        forced++;
+      }
+      writeFile(checksumFile, JSON.stringify(forceChecksums, null, 2));
+      log('FORCE    overwrote all ' + forced + ' prompt files from commons');
+      log('');
+    }
   }
 
   writeVersion();
@@ -542,7 +622,8 @@ else {
   process.stdout.write('  aec v' + PKG.version + ' -- AI Engineering Common CLI\n\n');
   process.stdout.write('  Commands:\n');
   process.stdout.write('    aec init              Bootstrap .ai/ folder and prompt files\n');
-  process.stdout.write('    aec update            Regenerate tool configs from current .ai/project/ files\n');
+  process.stdout.write('    aec update            Regenerate tool configs, sync changed prompt files\n');
+  process.stdout.write('    aec update --force-prompts  Overwrite ALL prompt files from commons (ignores customisations)\n');
   process.stdout.write('    aec list [scope]      List files (commands|agents|foundation|playbooks|sdlc)\n');
   process.stdout.write('    aec check             Validate .ai/project/ files are filled in\n');
   process.stdout.write('    aec version           Show installed version\n\n');

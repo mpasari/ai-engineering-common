@@ -788,24 +788,16 @@ Use this sequence:
 
 **Step 1 -- Run /analyse-capabilities on the epic**
 
-Note: `/analyse-capabilities` currently reads from `service-brief.md` in the
-repo root. For sprint use, first create a brief service-brief.md from the
-epic description:
-
-```powershell
-# Create a temporary service-brief.md from the epic
-@jira-mcp get issue [EPIC-KEY]
-
-Write the epic description and acceptance criteria to service-brief.md
-in the repo root, then run /analyse-capabilities.
-```
+Pass the Jira epic key directly -- no service-brief.md needed:
 
 ```
-/analyse-capabilities
+/analyse-capabilities [EPIC-KEY]
 ```
 
-The AI breaks the epic into 6-10 capability areas in delivery order with
-dependency reasoning. This is the capability map.
+The AI fetches the epic from Jira, reads the codebase context from
+.ai/project/, and breaks the epic into 6-10 capability areas in
+delivery sequence order with dependency reasoning and tech debt
+prerequisites. Output is saved to capability-analysis.md.
 
 **Step 2 -- Run /draft-epics to create sub-epics if needed**
 

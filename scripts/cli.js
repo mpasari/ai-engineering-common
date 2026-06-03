@@ -180,13 +180,39 @@ function generateCopilot() {
     readCommons('foundation/PRIVACY_GUARDRAILS_SUMMARY.md'), // ~25 lines -- prohibitions only
   ];
 
-  // Only include project files that have been populated by the brownfield scan.
-  // Empty stub templates (with {{INSTALL_DATE}} or [placeholder] text) add
-  // hundreds of lines of noise with zero value. JIRA_CONFIG.md is always
-  // included because it is filled in manually before running the scan.
-  const jiraConfig = readProject('JIRA_CONFIG.md');
+  // JIRA_CONFIG.md is 80+ lines of documentation for the engineer.
+  // Copilot only needs the key values: project key, team field, Confluence space.
+  // Extract just those values and generate a compact summary instead of
+  // including the full file with all the explanatory comments and tables.
+  function buildJiraConfigSummary() {
+    const raw = readProject('JIRA_CONFIG.md');
+    if (!raw) return '# JIRA_CONFIG\nNot configured -- fill in .ai/project/JIRA_CONFIG.md';
+
+    // Extract key values with simple regex -- fail gracefully if not found
+    const projectKey   = (raw.match(/Project key:\s*(\S+)/)   || [])[1] || '[not set]';
+    const baseUrl      = (raw.match(/Jira base URL:\s*(\S+)/) || [])[1] || '[not set]';
+    const boardType    = (raw.match(/Board type:\s*(\S+)/)    || [])[1] || 'Scrum';
+    const teamFieldId  = (raw.match(/Field ID:\s*(\S+)/)      || [])[1] || '[not set]';
+    const teamValue    = (raw.match(/Value for demos:\s*(.+)/)|| [])[1]?.trim() || '[not set]';
+
+    // Extract real project key (read-only) if present
+    const realProject  = (raw.match(/Real Jira project:\s*(\S+)/) || [])[1] || null;
+    const realSpace    = (raw.match(/Real Confluence space:\s*(\S+)/) || [])[1] || null;
+
+    let summary = `# JIRA_CONFIG (summary)\n`;
+    summary += `Write target: ${projectKey} at ${baseUrl}\n`;
+    summary += `Board type: ${boardType}\n`;
+    summary += `Team field: ${teamFieldId} = "${teamValue}"\n`;
+    summary += `Default labels: ai-engineering-commons\n`;
+    if (realProject) summary += `Read-only real project: ${realProject}\n`;
+    if (realSpace)   summary += `Read-only real Confluence space: ${realSpace}\n`;
+    summary += `\nALWAYS read this file before any Jira or Confluence operation.\n`;
+    summary += `NEVER write to the real project or real Confluence space.`;
+    return summary;
+  }
+
   const projectSections = [
-    jiraConfig,
+    buildJiraConfigSummary(),
     isPopulated(readProject('MODULE_REGISTRY.md'))       ? readProject('MODULE_REGISTRY.md')       : null,
     isPopulated(readProject('ARCHITECTURE_OVERVIEW.md')) ? readProject('ARCHITECTURE_OVERVIEW.md') : null,
     isPopulated(readProject('INTEGRATION_MAP.md'))       ? readProject('INTEGRATION_MAP.md')       : null,

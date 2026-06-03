@@ -228,6 +228,16 @@ Code generation: Developer during sprint
 
 Commit and push to main.
 
+Then run the consolidated story creation command:
+
+```
+/create-tech-debt-stories
+```
+
+This reads all DEEP analysis files and TECH_DEBT_REGISTRY.md, deduplicates
+all findings, and presents a Gate C01 batch for Tech Lead review before
+creating any stories in the real Jira project.
+
 ---
 
 ### OT-3 — Agree Team AI Engineering Norms

@@ -199,36 +199,67 @@ These files are all empty stubs. The brownfield scan will fill them in.
 
 ## Step 4 — Configure JIRA_CONFIG.md
 
-**What to do:**
-Open `.ai/project/JIRA_CONFIG.md` and replace the content with:
+**This is a one-time task. Do it before running the scan.**
 
-```powershell
-Set-Content -Path ".ai\project\JIRA_CONFIG.md" -Encoding UTF8 -Value @"
-## DEMO (write target -- safe for testing)
-Project key:        SPOCKT
-Jira base URL:      https://jira.atlassian.teliacompany.net
-Board type:         Scrum
-Default issue type: Story
+The brownfield scan reads JIRA_CONFIG.md when writing every output file --
+MODULE_REGISTRY.md, TECH_DEBT_REGISTRY.md, ARCHITECTURE_OVERVIEW.md and all
+DEEP analysis files. The owner, project key, and team name in those files
+come directly from what you set here. If you configure this correctly now,
+every file produced by the scan will be tagged correctly from the start.
 
-Custom field mappings:
-  Development Team: customfield_12725
-  Value for demos:  SPOCK Common
+**Find your real values before editing:**
 
-## REAL PROJECT (read-only -- never write here)
-Real Jira project:     [YOUR-REAL-PROJECT-KEY]
-Real board type:       [Scrum or Kanban]
-Real Confluence space: [YOUR-REAL-SPACE-KEY]
+```
+Project key:      Open Jira → your team board → URL contains the project key
+                  Example: jira.atlassian.teliacompany.net/jira/software/projects/NOCT
 
-IMPORTANT: All Jira writes go to SPOCKT only.
-           All Confluence writes go to ECAI only.
-"@
+Team name:        In Copilot Chat: "@jira-mcp search fields for project [YOUR-KEY]"
+                  Find customfield_12725 and note the valid option values
+
+Confluence space: Open your team Confluence space → note the space key from the URL
+                  Example: itwiki.atlassian.teliacompany.net/spaces/AIC → key is AIC
+
+Confluence parent page ID:
+                  Open the Confluence page where specs should be written
+                  Click ··· → Page Information → note the numeric Page ID from the URL
 ```
 
-Replace `[YOUR-REAL-PROJECT-KEY]` and `[YOUR-REAL-SPACE-KEY]` with your actual values.
+**Edit `.ai/project/JIRA_CONFIG.md` directly in VS Code:**
 
-**Why this matters:**
-Every Jira write command reads this file first.
-This is what ensures stories go to SPOCKT (demo) not your real project.
+Update these fields with your real values:
+
+```
+Project key:        [YOUR-REAL-PROJECT-KEY]     ← e.g. NOCT
+Project name:       [YOUR-REAL-PROJECT-NAME]    ← e.g. AI Agent NO B2C Customer Care
+Board type:         [Scrum or Kanban]
+
+Development Team field:
+  Value:            [YOUR-REAL-TEAM-NAME]        ← e.g. AI
+  All valid values:
+    - [paste valid values from jira-mcp field search]
+
+Confluence space:      [YOUR-SPACE-KEY]          ← e.g. AIC
+Confluence parent:     [PAGE-ID]                 ← e.g. 1313364211
+```
+
+**Do not leave any `[placeholder]` values in the file.**
+
+**Verify it is correct before continuing:**
+
+```powershell
+Get-Content ".ai\project\JIRA_CONFIG.md" | Select-Object -First 15
+# Should show your real project key and team name -- not SPOCK Common or placeholders
+```
+
+**Why this is done before the scan:**
+Every registry file the scan produces reads the team name from this file.
+Configuring it correctly here means you never have to go back and correct
+owner fields across multiple files after the scan completes.
+
+**Note on Value field naming:**
+Use `Value:` (not `Value for demos:`). The `buildJiraConfigSummary()` function
+in the commons reads this field to generate the lean JIRA summary in
+`copilot-instructions.md`. Using `Value:` ensures it is extracted correctly.
 
 ---
 

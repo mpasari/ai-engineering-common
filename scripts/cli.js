@@ -153,29 +153,60 @@ function readAgentFiles(agentList) {
 // npx aec update is safe to run -- it only refreshes project context.
 // ---------------------------------------------------------------------------
 
+function isPopulated(content) {
+  // Returns true only if the file contains real content, not a stub template.
+  // Unpopulated stubs add noise without value -- skip them.
+  if (!content) return false;
+  const stubs = ['[placeholder]', '[module-name]', '[team-name]', '{{INSTALL_DATE}}',
+                 '[Not yet created]', '# TODO', '[module name from'];
+  if (stubs.some(s => content.includes(s))) return false;
+  return content.split('\n').length >= 20;
+}
+
 function generateCopilot() {
   const outPath = path.join(CWD, '.github', 'copilot-instructions.md');
 
-  const sections = [
-    readCommons('foundation/AGENT.md'),
-    readCommons('foundation/HITL_PROTOCOL.md'),
-    readCommons('foundation/PRIVACY_GUARDRAILS.md'),
-    readProject('JIRA_CONFIG.md'),
-    readProject('MODULE_REGISTRY.md'),
-    readProject('ARCHITECTURE_OVERVIEW.md'),
-    readProject('INTEGRATION_MAP.md'),
-    readProject('DATA_MODEL.md'),
-  ].filter(Boolean);
+  // Use LEAN SUMMARY versions of foundation files -- not the full documents.
+  // HITL_PROTOCOL.md is 393 lines. PRIVACY_GUARDRAILS.md is 321 lines.
+  // Copilot does not need the full audit schemas, JSON log formats, or
+  // GDPR regulatory references. It needs: which gates exist, when to stop,
+  // what not to include in prompts. The summary files cover all of that in ~50 lines.
+  //
+  // Full versions are still used in CLAUDE.md for Claude Code / Cursor
+  // where the full governance detail is genuinely needed.
+  const foundationSections = [
+    readCommons('foundation/AGENT.md'),                      // 44 lines -- already lean
+    readCommons('foundation/HITL_PROTOCOL_SUMMARY.md'),      // ~30 lines -- gate IDs + format only
+    readCommons('foundation/PRIVACY_GUARDRAILS_SUMMARY.md'), // ~25 lines -- prohibitions only
+  ];
 
+  // Only include project files that have been populated by the brownfield scan.
+  // Empty stub templates (with {{INSTALL_DATE}} or [placeholder] text) add
+  // hundreds of lines of noise with zero value. JIRA_CONFIG.md is always
+  // included because it is filled in manually before running the scan.
+  const jiraConfig = readProject('JIRA_CONFIG.md');
+  const projectSections = [
+    jiraConfig,
+    isPopulated(readProject('MODULE_REGISTRY.md'))       ? readProject('MODULE_REGISTRY.md')       : null,
+    isPopulated(readProject('ARCHITECTURE_OVERVIEW.md')) ? readProject('ARCHITECTURE_OVERVIEW.md') : null,
+    isPopulated(readProject('INTEGRATION_MAP.md'))       ? readProject('INTEGRATION_MAP.md')       : null,
+    isPopulated(readProject('DATA_MODEL.md'))            ? readProject('DATA_MODEL.md')            : null,
+  ];
+
+  const sections = [...foundationSections, ...projectSections].filter(Boolean);
   writeFile(outPath, sections.join('\n\n---\n\n'));
 
   const lineCount = sections.join('\n\n---\n\n').split('\n').length;
-  log('updated  .github/copilot-instructions.md (' +
-    sections.length + ' sections, ' + lineCount + ' lines)');
+  const populated = projectSections.filter(Boolean).length;
 
-  if (lineCount > 300) {
+  log('updated  .github/copilot-instructions.md (' +
+    sections.length + ' sections, ' + lineCount + ' lines, ' +
+    populated + ' project files populated)');
+
+  if (lineCount > 400) {
     log('NOTE: copilot-instructions.md is ' + lineCount + ' lines.');
-    log('      This is expected after a full brownfield scan.');
+    log('      Large project context files after brownfield scan -- expected.');
+    log('      Trim verbose sections in .ai/project/ files if context issues occur.');
   }
 }
 

@@ -235,17 +235,28 @@ Run `npx aec update` once after ALL DEEP analyses are complete.
 When all Active modules are done:
 
 ```powershell
-git add .ai\projectgit commit -m "chore: brownfield scan and DEEP analysis complete
+# Stage all commons-generated files
+git add .ai\project\                          # brownfield scan + DEEP analysis output
+git add .github\prompts\                      # all slash commands
+git add .github\copilot-instructions.md       # lean identity + JIRA summary
+git add .github\prompts\.aec-checksums.json   # prompt sync tracking
 
-Modules scanned: [N]
-Active modules with DEEP analysis: [N]
-Tech debt items identified: [N]
+# Verify what is staged -- check nothing unexpected is included
+git status
+
+git commit -m "chore: AI Engineering Commons setup -- OT-1 and OT-2 complete
+
+JIRA_CONFIG.md: configured for [YOUR-PROJECT-KEY] / [YOUR-TEAM-NAME] / [YOUR-SPACE]
+Brownfield scan: [N] modules found ([N] Active, [N] Legacy, [N] Deprecated)
+DEEP analysis: [N] Active modules analysed
+Tech debt items: [N] ([N] Critical, [N] High, [N] Medium, [N] Low)
 All .ai/project/ files reviewed and confirmed accurate by Tech Lead"
+
 git push origin ai-commons-setup
 # Raise PR to main -- Tech Lead reviews and merges
 ```
 
-Then run once to refresh copilot-instructions.md with the populated project files:
+Then run once to refresh copilot-instructions.md with the fully populated project files:
 
 ```powershell
 npx aec update

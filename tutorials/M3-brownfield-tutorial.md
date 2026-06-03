@@ -232,80 +232,26 @@ This is what ensures stories go to SPOCKT (demo) not your real project.
 
 ---
 
-## Step 5 — Replace copilot-instructions.md with lean version
+## Step 5 — Verify copilot-instructions.md is lean
 
-**What to do:**
-
-```powershell
-Set-Content -Path ".github\copilot-instructions.md" -Encoding UTF8 -Value @"
-# AI Engineering Commons -- Copilot Instructions
-# Project: [your-repo] brownfield discovery (demo run)
-
-## Rules
-- Execute commands immediately when triggered via prompt files
-- Save all outputs to files in the project root
-- Read .ai/project/JIRA_CONFIG.md before any Jira operation
-- Write to demo project SPOCKT and ECAI space only -- never real systems
-- Never hard delete -- soft delete only
-
-## MCP tools
-- jira-mcp: demo writes to SPOCKT, reads from real project
-- confluence-mcp: demo writes to ECAI space
-"@
-
-# Verify it is lean
-(Get-Content ".github\copilot-instructions.md").Count
-# Should show: 17
-```
-
-**Why this step:**
-The generated copilot-instructions.md contains 3500+ lines of agent skill files.
-This exhausts 80% of the context window before you type a single word,
-causing constant conversation compaction and confusing behaviour.
-The lean 17-line version keeps the context window under 5%.
-
----
-
-## Step 5b — Replace copilot-instructions.md with the lean version
-
-**This step will not be needed once the commons fix is shipped.**
-
-The generated `.github/copilot-instructions.md` currently contains 3500+ lines
-because `npx aec init` builds a large context file from all the agent skill files.
-This fills the context window before you type anything and causes confusing behaviour.
-
-Until the commons generates a lean version by default, replace it manually now:
+`npx aec init` now generates a lean `copilot-instructions.md` by default (~124 lines).
+Verify it looks correct before opening VS Code:
 
 ```powershell
-# Make sure you are in your repo root
-cd "C:\Projects\[your-repo]"
-
-Set-Content -Path ".github\copilot-instructions.md" -Encoding UTF8 -Value @"
-# AI Engineering Commons
-# Project: [your-repo] brownfield discovery (demo run)
-
-## Rules
-- Execute commands immediately when triggered via prompt files
-- Save all outputs to .ai/project/ files
-- Read .ai/project/JIRA_CONFIG.md before any Jira operation
-- Write to demo project SPOCKT and ECAI space only
-- Never push to origin during demo runs
-
-## MCP tools
-- jira-mcp: demo writes to SPOCKT, reads from real project
-- confluence-mcp: demo writes to ECAI space
-"@
-
-# Verify it is lean
 (Get-Content ".github\copilot-instructions.md").Count
-# Should show: 17
+# Should show: 120-130
 ```
 
-**What you should see:** `17`
+If it shows 3500+ lines you have an older version of the commons.
+Update it first:
 
-If it shows 17 -- continue to Step 6.
-If it shows 500+ -- the file was not replaced. Try the command again making sure
-you are in the repo root folder (not the commons folder).
+```powershell
+cd "C:\...\ai-engineering-common"
+git pull
+cd [your-repo]
+npm link @telia-company/ai-engineering-common
+npx aec init
+```
 
 ---
 
@@ -529,13 +475,12 @@ This is what completes M3. Your findings help the whole group learn.
 | Problem | Cause | Fix |
 |---|---|---|
 | npm install ETIMEDOUT | Corporate network blocks npm | Use npm link (Step 2) |
-| "Your input exceeds the context window" | copilot-instructions.md is too large (500+ lines) | Run Step 5b -- replace copilot-instructions.md with the lean 17-line version before opening Copilot Chat |
 | "Client ID https://vscode.dev/oauth/client-metadata.json was not found" | VS Code uses Dynamic Client Registration (RFC 7591) which the Telia MCP server does not yet support | Server-side fix needed. Continue M3 Steps 1-9 without MCP. Skip Jira story creation until fixed. Escalate to Backstage platform team. |
 | "Client ID 10bda343-xxx was not found" | Stale OAuth token cached in VS Code state database | Close VS Code. Run: `Remove-Item "$env:APPDATA\Code\User\globalStorage\state.vscdb" -Force` then reopen VS Code and retry. |
 | Phase 6 stops -- credential found | Production secret in source code | Contact Security Lead. Do not continue until credential is rotated. |
 | Module wrongly classified Legacy | Low commit count heuristic | Run git log manually (Step 10) and correct MODULE_REGISTRY.md |
 | Copilot cannot find files | Files not committed | git add + git commit before next command |
-| Context window at 80%+ | copilot-instructions.md too large | Replace with lean version (Step 5) |
+| Context window at 80%+ | Using an older version of the commons | Update commons: git pull in commons folder, then npm link and npx aec init again |
 | Keep/Undo buttons visible | Pending Copilot edits | Click Keep on each file before committing |
 | Git commit ran through Copilot | Clicked Allow on Copilot git proposal | Always click Skip on Copilot git proposals. Run git in terminal. |
 

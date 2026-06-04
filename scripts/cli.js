@@ -260,13 +260,49 @@ function generateCopilot() {
     return summary;
   }
 
+  function buildIntegrationMapSummary() {
+    const raw = readProject('INTEGRATION_MAP.md');
+    if (!isPopulated(raw)) return null;
+    const lines = raw.split('\n');
+    // Extract table rows that contain integration entries (have | and a system name)
+    const rows = lines.filter(function(l) {
+      return l.includes('|') && !l.includes('---|') && !l.includes('System') && l.trim().startsWith('|');
+    });
+    if (!rows.length) return raw;
+    var summary = '# INTEGRATION_MAP (summary -- ' + rows.length + ' integrations)\n';
+    rows.forEach(function(row) {
+      var cols = row.split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+      if (cols.length >= 2) summary += '  ' + cols[0] + ' -- ' + (cols[1] || '') + '\n';
+    });
+    summary += '\nFull detail: .ai/project/INTEGRATION_MAP.md';
+    return summary;
+  }
+
+  function buildDataModelSummary() {
+    const raw = readProject('DATA_MODEL.md');
+    if (!isPopulated(raw)) return null;
+    const lines = raw.split('\n');
+    // Find entity/table headings (lines starting with ###)
+    const entities = lines.filter(function(l) { return l.startsWith('###'); });
+    // Find PII flags
+    const piiLines = lines.filter(function(l) {
+      return l.includes('Yes') && (l.includes('PII') || l.includes('personal'));
+    });
+    if (!entities.length) return raw;
+    var summary = '# DATA_MODEL (summary -- ' + entities.length + ' entities)\n';
+    entities.forEach(function(e) { summary += '  ' + e.replace(/^#+\s*/, '') + '\n'; });
+    if (piiLines.length) summary += '\nPII fields present: ' + piiLines.length + ' -- see full file for GDPR retention details.\n';
+    summary += '\nFull detail: .ai/project/DATA_MODEL.md';
+    return summary;
+  }
+
   const projectSections = [
     buildJiraConfigSummary(),
     isPopulated(readProject('ARCHITECTURE_OVERVIEW.md')) ? readProject('ARCHITECTURE_OVERVIEW.md') : null,
     buildModuleRegistrySummary(),
     buildTechDebtSummary(),
-    isPopulated(readProject('INTEGRATION_MAP.md'))       ? readProject('INTEGRATION_MAP.md')       : null,
-    isPopulated(readProject('DATA_MODEL.md'))            ? readProject('DATA_MODEL.md')            : null,
+    buildIntegrationMapSummary(),
+    buildDataModelSummary(),
   ];
 
   const sections = [...foundationSections, ...projectSections].filter(Boolean);

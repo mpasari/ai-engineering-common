@@ -86,24 +86,35 @@ Create a Confluence page with:
 - Parent:  [value from JIRA_CONFIG.md Confluence parent field]
 - Title:   DRAFT: SPEC: [story-key] -- [story-summary]
 - Status:  DRAFT (prefix title with DRAFT: to make status visible)
-- Content: the full spec from Step 3
 
-Add Gate C01 section at the bottom of the page:
+Format the page content using proper Confluence wiki markup:
+- Use h2. and h3. for section headings
+- Use * for bullet points (one item per line)
+- Use # for numbered lists (one item per line)
+- Use {{code}} blocks for any inline code or class names
+- Use {info} panels for important notes
+- Never write bullet lists as a single paragraph -- each item must be on its own line
 
-```
-=== GATE C01 ===
-Status: PENDING APPROVAL
-Story: [Jira key]
-Approver: Tech Lead
-Generated: [date]
+Add Gate C01 section at the bottom of the page using a Confluence panel:
 
-Decisions required before implementation:
-  [numbered list of decisions or risks found in Step 2 and Step 3]
+{panel:title=⏸ GATE C01 — Tech Lead Review Required|borderColor=#9B1FE8|titleBGColor=#2A0845|titleColor=#F4ECFB|bgColor=#190029}
+*Status:* PENDING APPROVAL
+*Story:* [story-key] -- [story-title]
+*Approver:* Tech Lead
+*Generated:* [date]
 
-To approve: Tech Lead types APPROVED C01 [story-key] in Copilot Chat
-To request changes: Tech Lead types CHANGES C01 [story-key] [feedback]
-=== END GATE C01 ===
-```
+*Decisions required before implementation:*
+# [decision or risk 1]
+# [decision or risk 2]
+# [decision or risk 3]
+
+*To approve:*
+Tech Lead opens Copilot Chat in VS Code and types:
+{{APPROVED C01 [story-key]}}
+
+*To request changes:*
+{{CHANGES C01 [story-key] [specific feedback]}}
+{panel}
 
 ## Step 5 -- Update Jira story
 
@@ -128,27 +139,29 @@ CHANGES C01 [story-key] [your specific feedback]
 
 ## Step 6 -- Present Gate C01 in chat WITH the URL
 
-Display in chat:
+Display in chat using this exact format:
 
-```
-=== GATE C01 ===
-Status: PENDING APPROVAL
-Story: [Jira key and title]
-Spec published to Confluence: [FULL URL]
+---
+⏸ **GATE C01 — PENDING APPROVAL**
 
-The spec is now visible at the link above.
-Share this URL with the Tech Lead for review.
+**Story:** [story-key] -- [story-title]
+**Spec:** [FULL Confluence URL]
 
-Decisions required:
-  [same list as on the Confluence page]
+The spec is published to Confluence as a DRAFT.
+Share the URL above with the Tech Lead for review.
 
-Tech Lead approves by typing in Copilot Chat:
-  APPROVED C01 [story-key]
+**Decisions required before implementation:**
+1. [decision 1]
+2. [decision 2]
+3. [decision 3]
 
-Tech Lead requests changes by typing:
-  CHANGES C01 [story-key] [specific feedback]
-=== END GATE C01 ===
-```
+**Tech Lead approves by typing in Copilot Chat:**
+`APPROVED C01 [story-key]`
+
+**Tech Lead requests changes by typing:**
+`CHANGES C01 [story-key] [specific feedback]`
+
+---
 
 Stop and wait. Do not proceed to code generation until APPROVED C01 is received.
 

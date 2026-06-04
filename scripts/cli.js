@@ -218,60 +218,45 @@ function generateCopilot() {
   function buildModuleRegistrySummary() {
     const raw = readProject('MODULE_REGISTRY.md');
     if (!isPopulated(raw)) return null;
-    const lines = raw.split('
-');
-    const tableRows = lines.filter(l =>
-      l.includes('|') && (l.includes('Active') || l.includes('Legacy') || l.includes('Deprecated'))
-    );
-    if (!tableRows.length) return raw;
-    const active     = tableRows.filter(l => l.includes('Active')).length;
-    const legacy     = tableRows.filter(l => l.includes('Legacy')).length;
-    const deprecated = tableRows.filter(l => l.includes('Deprecated')).length;
-    let summary = `# MODULE_REGISTRY (summary -- ${tableRows.length} modules)
-`;
-    summary += `Active: ${active}  Legacy: ${legacy}  Deprecated: ${deprecated}
-
-`;
-    summary += `| Module | Status | Risk |
-|---|---|---|
-`;
-    tableRows.forEach(row => {
-      const cols = row.split('|').map(c => c.trim()).filter(Boolean);
-      if (cols.length >= 3) summary += `| ${cols[0]} | ${cols[2]} | ${cols[4] || '-'} |
-`;
+    const lines = raw.split('\n');
+    const tableRows = lines.filter(function(l) {
+      return l.includes('|') && (l.includes('Active') || l.includes('Legacy') || l.includes('Deprecated'));
     });
-    summary += `
-Full detail: .ai/project/MODULE_REGISTRY.md`;
+    if (!tableRows.length) return raw;
+    const active     = tableRows.filter(function(l) { return l.includes('Active'); }).length;
+    const legacy     = tableRows.filter(function(l) { return l.includes('Legacy'); }).length;
+    const deprecated = tableRows.filter(function(l) { return l.includes('Deprecated'); }).length;
+    var summary = '# MODULE_REGISTRY (summary -- ' + tableRows.length + ' modules)\n';
+    summary += 'Active: ' + active + '  Legacy: ' + legacy + '  Deprecated: ' + deprecated + '\n\n';
+    summary += '| Module | Status | Risk |\n|---|---|---|\n';
+    tableRows.forEach(function(row) {
+      var cols = row.split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+      if (cols.length >= 3) summary += '| ' + cols[0] + ' | ' + cols[2] + ' | ' + (cols[4] || '-') + ' |\n';
+    });
+    summary += '\nFull detail: .ai/project/MODULE_REGISTRY.md';
     return summary;
   }
 
   function buildTechDebtSummary() {
     const raw = readProject('TECH_DEBT_REGISTRY.md');
     if (!isPopulated(raw)) return null;
-    const lines = raw.split('
-');
-    const tdRows = lines.filter(l => /\|\s*TD-/.test(l));
-    const critical = tdRows.filter(l => l.includes('Critical')).length;
-    const high     = tdRows.filter(l => l.includes('High')).length;
-    const medium   = tdRows.filter(l => l.includes('Medium')).length;
-    const low      = tdRows.filter(l => l.includes('Low') && !l.includes('Below')).length;
-    let summary = `# TECH_DEBT_REGISTRY (summary -- ${tdRows.length} items)
-`;
-    summary += `Critical: ${critical}  High: ${high}  Medium: ${medium}  Low: ${low}
-
-`;
-    const important = tdRows.filter(l => l.includes('Critical') || l.includes('High'));
+    const lines = raw.split('\n');
+    const tdRows = lines.filter(function(l) { return /\|\s*TD-/.test(l); });
+    const critical = tdRows.filter(function(l) { return l.includes('Critical'); }).length;
+    const high     = tdRows.filter(function(l) { return l.includes('High'); }).length;
+    const medium   = tdRows.filter(function(l) { return l.includes('Medium'); }).length;
+    const low      = tdRows.filter(function(l) { return l.includes('Low') && !l.includes('Below'); }).length;
+    var summary = '# TECH_DEBT_REGISTRY (summary -- ' + tdRows.length + ' items)\n';
+    summary += 'Critical: ' + critical + '  High: ' + high + '  Medium: ' + medium + '  Low: ' + low + '\n\n';
+    const important = tdRows.filter(function(l) { return l.includes('Critical') || l.includes('High'); });
     if (important.length) {
-      summary += `Critical and High items:
-`;
-      important.forEach(row => {
-        const cols = row.split('|').map(c => c.trim()).filter(Boolean);
-        if (cols.length >= 2) summary += `  ${cols[0]}: ${cols[1]}
-`;
+      summary += 'Critical and High items:\n';
+      important.forEach(function(row) {
+        var cols = row.split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+        if (cols.length >= 2) summary += '  ' + cols[0] + ': ' + cols[1] + '\n';
       });
     }
-    summary += `
-Full detail: .ai/project/TECH_DEBT_REGISTRY.md`;
+    summary += '\nFull detail: .ai/project/TECH_DEBT_REGISTRY.md';
     return summary;
   }
 

@@ -200,14 +200,14 @@ function generateCopilot() {
     const realSpace    = (raw.match(/(?:Real )?Confluence space:\s*(\S+)/) || [])[1] || null;
 
     let summary = `# JIRA_CONFIG (summary)\n`;
-    summary += `Write target: ${projectKey} at ${baseUrl}\n`;
-    summary += `Board type: ${boardType}\n`;
-    summary += `Team field: ${teamFieldId} = "${teamValue}"\n`;
-    summary += `Default labels: ai-engineering-commons\n`;
-    if (realProject) summary += `Read-only real project: ${realProject}\n`;
-    if (realSpace)   summary += `Read-only real Confluence space: ${realSpace}\n`;
-    summary += `\nALWAYS read this file before any Jira or Confluence operation.\n`;
-    summary += `NEVER write to the real project or real Confluence space.`;
+    summary += `Jira write target:      ${projectKey} at ${baseUrl}\n`;
+    summary += `Board type:             ${boardType}\n`;
+    summary += `Team field:             ${teamFieldId} = "${teamValue}"\n`;
+    summary += `Default labels:         ai-engineering-commons\n`;
+    summary += `Confluence space:       ${realSpace || '[not set -- fill in JIRA_CONFIG.md]'}\n`;
+    summary += `Confluence parent:      [read from JIRA_CONFIG.md]\n`;
+    summary += `\nALWAYS read .ai/project/JIRA_CONFIG.md before any Jira or Confluence operation.\n`;
+    summary += `Write to the configured project and space above.`;
     return summary;
   }
 

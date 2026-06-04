@@ -14,6 +14,12 @@ tools:
 
 Do not greet the user. Execute immediately.
 
+## Critical rules
+- The Confluence page is the ONLY output artifact. Do not create local .md files.
+- Do not save the spec to disk. Do not create [story-key]-spec.md or any local file.
+- Confluence is the source of truth. If Confluence write fails -- report the error, do not fall back to a local file.
+- The .ai/project/ folder is read-only context. Do not write spec content there.
+
 ## Step 1 -- Read the Jira story and project context
 
 ```

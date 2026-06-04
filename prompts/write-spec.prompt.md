@@ -93,34 +93,45 @@ Create a Confluence page with:
 - Title:   DRAFT: SPEC: [story-key] -- [story-summary]
 - Status:  DRAFT (prefix title with DRAFT: to make status visible)
 
-Format the page content using proper Confluence wiki markup:
-- Use h2. and h3. for section headings
-- Use * for bullet points (one item per line)
-- Use # for numbered lists (one item per line)
-- Use {{code}} blocks for any inline code or class names
-- Use {info} panels for important notes
-- Never write bullet lists as a single paragraph -- each item must be on its own line
+IMPORTANT: The Confluence MCP uses storage format (XHTML) not wiki markup.
+Do NOT use wiki syntax -- h2., *, #, {{code}}, {panel} -- they render as literal text.
+Use plain HTML elements for all formatting:
 
-Add Gate C01 section at the bottom of the page using a Confluence panel:
+- Headings:       <h2>Section</h2> and <h3>Subsection</h3>
+- Bullet lists:   <ul><li>item</li><li>item</li></ul>  -- each item its own <li>
+- Numbered lists: <ol><li>item</li><li>item</li></ol>  -- each item its own <li>
+- Inline code:    <code>ClassName</code>
+- Code blocks:    <pre>multi-line code here</pre>
+- Bold:           <strong>label</strong>
+- Tables:         <table><tr><th>header</th><td>value</td></tr></table>
 
-{panel:title=⏸ GATE C01 — Tech Lead Review Required|borderColor=#9B1FE8|titleBGColor=#2A0845|titleColor=#F4ECFB|bgColor=#190029}
-*Status:* PENDING APPROVAL
-*Story:* [story-key] -- [story-title]
-*Approver:* Tech Lead
-*Generated:* [date]
+NEVER write a list as a single paragraph. Each bullet point is a separate <li> element.
 
-*Decisions required before implementation:*
-# [decision or risk 1]
-# [decision or risk 2]
-# [decision or risk 3]
+Add Gate C01 section at the bottom of the page.
 
-*To approve:*
-Tech Lead opens Copilot Chat in VS Code and types:
-{{APPROVED C01 [story-key]}}
+The Confluence MCP submits content as storage format (XHTML), not wiki markup.
+Use this exact HTML structure for the Gate C01 block -- do not use {panel} or wiki macros:
 
-*To request changes:*
-{{CHANGES C01 [story-key] [specific feedback]}}
-{panel}
+<h2>⏸ Gate C01 — Tech Lead Review Required</h2>
+<table>
+  <tbody>
+    <tr><th>Status</th><td><strong>PENDING APPROVAL</strong></td></tr>
+    <tr><th>Story</th><td>[story-key] — [story-title]</td></tr>
+    <tr><th>Approver</th><td>Tech Lead</td></tr>
+    <tr><th>Generated</th><td>[date]</td></tr>
+  </tbody>
+</table>
+<h3>Decisions required before implementation</h3>
+<ol>
+  <li>[decision or risk 1]</li>
+  <li>[decision or risk 2]</li>
+  <li>[decision or risk 3]</li>
+</ol>
+<h3>To approve</h3>
+<p>Tech Lead opens Copilot Chat in VS Code and types:</p>
+<pre>APPROVED C01 [story-key]</pre>
+<h3>To request changes</h3>
+<pre>CHANGES C01 [story-key] [specific feedback]</pre>
 
 ## Step 5 -- Update Jira story
 

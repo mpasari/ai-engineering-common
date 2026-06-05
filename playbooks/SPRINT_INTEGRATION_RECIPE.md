@@ -77,6 +77,29 @@ Confluence parent page ID:
   Click ··· → Page Information → copy the numeric Page ID from the URL
 ```
 
+After `npx aec init`, fill in two configuration files:
+
+**1. `.ai/project/JIRA_CONFIG.md`** -- Jira and Confluence connection settings
+
+**2. `.ai/project/PRODUCT_GOVERNANCE.md`** -- product governance decisions
+
+PRODUCT_GOVERNANCE.md is read by all compliance and governance commands
+(/generate-dpia-brief, /generate-security-assessment, /generate-iso27001).
+Fill it in now so those commands produce complete output instead of
+placeholder [CONFIRM] markers. Key fields to fill in now:
+
+```
+Product name, Product owner, Tech Lead, Security Lead, DPO
+Applicable regulations (GDPR lawful basis, EU AI Act risk category)
+Data retention decisions per entity
+Third-party processors and DPA status
+SLA targets (availability, RTO, RPO)
+LLM provider data handling confirmation
+```
+
+Fields you cannot answer yet (certification dates, pentest dates) -- leave
+as placeholders and update when the information is available.
+
 After `npx aec init`, open `.ai/project/JIRA_CONFIG.md` and fill in
 your real values. The file already has the correct structure -- just
 update the placeholder values:

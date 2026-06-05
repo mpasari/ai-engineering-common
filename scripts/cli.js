@@ -590,6 +590,25 @@ else if (cmd === 'update') {
     }
   }
 
+  // Sync new project-layer template files added to the commons since last init.
+  // Uses same conservative logic as prompts -- only adds NEW files.
+  // Never overwrites existing files (may have been filled in by the team).
+  const tmplSrc  = path.join(PKG_DIR, 'templates', 'project-layer');
+  if (fs.existsSync(tmplSrc)) {
+    const tmplFiles = fs.readdirSync(tmplSrc).filter(f => f.endsWith('.md'));
+    let tmplAdded = 0;
+    for (const f of tmplFiles) {
+      const dest = path.join(PROJECT, f);
+      if (!fs.existsSync(dest)) {
+        writeFile(dest, readFile(path.join(tmplSrc, f)) || '');
+        log('added    .ai/project/' + f + '  (new template)');
+        tmplAdded++;
+      }
+    }
+    if (tmplAdded === 0) log('templates all up to date');
+    log('');
+  }
+
   writeVersion();
   generateCopilot();  // always regenerated -- lean, safe, picks up latest .ai/project/ content
   generateClaude();   // skipped for copilot environments

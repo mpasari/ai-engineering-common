@@ -28,6 +28,10 @@ Run: git log --since="[last updated date]" --name-only --pretty=format:""
 Filter to relevant files for this standard:
 
 GDPR / ISO27001: app/services/ app/utils/ app/config/ INTEGRATION_MAP.md DATA_MODEL.md
+
+If INTEGRATION_MAP.md changed -- also note:
+"INTEGRATION_MAP.md changed. Run /generate-integration-diagram to update
+the integration diagram and Confluence page." 
 AI_ACT: app/services/ (LLM calls) PRODUCT_GOVERNANCE.md
 NIS2 / DORA: INTEGRATION_MAP.md PRODUCT_GOVERNANCE.md .github/workflows/
 OWASP: app/services/ app/utils/ (any file with LLM calls, logging, auth)
